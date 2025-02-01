@@ -13,11 +13,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               <Link to="/" className="text-text hover:text-primary transition-colors">
                 Home
               </Link>
-              <Link to="/chat" className="text-text hover:text-primary transition-colors">
-                AI Advisor
-              </Link>
-              <Link to="/dashboard" className="text-text hover:text-primary transition-colors">
-                Dashboard
+              <Link to="/login" className="text-text hover:text-primary transition-colors">
+                Login
               </Link>
             </div>
           </div>
