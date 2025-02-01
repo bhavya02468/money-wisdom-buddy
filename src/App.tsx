@@ -15,6 +15,7 @@ import Investments from "./pages/Investments";
 import NotFound from "./pages/NotFound";
 import Layout from "./components/Layout";
 import DashboardLayout from "./components/DashboardLayout";
+import FinancialGoals from "./pages/FinancialGoals";
 
 const queryClient = new QueryClient();
 
@@ -138,6 +139,14 @@ const App = () => (
             element={
               <PrivateRoute>
                 <Investments />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/financial-goals"
+            element={
+              <PrivateRoute>
+                <FinancialGoals />
               </PrivateRoute>
             }
           />
