@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import {
   Wallet,
-  TrendingUp,
+  Award,
   PiggyBank,
   CreditCard,
   Shield,
@@ -28,6 +28,22 @@ import { useFinancialGoals } from "@/hooks/useFinancialGoals";
 import { RecurringExpenses } from "@/components/RecurringExpenses";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+
+const getCreditScoreColor = (score: number) => {
+  if (score >= 800) return "#9b87f5"; // Excellent
+  if (score >= 740) return "#7E69AB"; // Very Good
+  if (score >= 670) return "#6E59A5"; // Good
+  if (score >= 580) return "#ea384c"; // Fair
+  return "#1A1F2C"; // Poor
+};
+
+const getCreditScoreText = (score: number) => {
+  if (score >= 800) return "Excellent";
+  if (score >= 740) return "Very Good";
+  if (score >= 670) return "Good";
+  if (score >= 580) return "Fair";
+  return "Poor";
+};
 
 const Dashboard = () => {
   const { monthlyData: expenseData, spendingByCategory } = useMonthlyExpenses();
@@ -81,6 +97,11 @@ const Dashboard = () => {
     );
   };
 
+  // Hardcoded credit score for demo (you can replace this with real data later)
+  const creditScore = 750;
+  const creditScoreColor = getCreditScoreColor(creditScore);
+  const creditScoreText = getCreditScoreText(creditScore);
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
@@ -107,13 +128,13 @@ const Dashboard = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-text-light">Monthly Income</p>
-                <p className="text-2xl font-semibold">
-                  ${currentMonthIncome.toFixed(2)}
-                  {getChangeIndicator(incomeData[0]?.change || 0)}
+                <p className="text-sm text-text-light">Credit Score</p>
+                <p className="text-2xl font-semibold" style={{ color: creditScoreColor }}>
+                  {creditScore}
                 </p>
+                <p className="text-sm" style={{ color: creditScoreColor }}>{creditScoreText}</p>
               </div>
-              <TrendingUp className="w-8 h-8 text-secondary" />
+              <Award className="w-8 h-8" style={{ color: creditScoreColor }} />
             </div>
           </CardContent>
         </Card>
@@ -178,7 +199,7 @@ const Dashboard = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Monthly Expenses by Category</CardTitle>
+            <CardTitle>Expenses by Category</CardTitle>
           </CardHeader>
           <CardContent>
             {spendingByCategory.length > 0 ? (

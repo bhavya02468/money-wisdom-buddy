@@ -4,7 +4,16 @@ import { useExpenses } from "@/hooks/useExpenses";
 export const RecurringExpenses = () => {
   const { data: expenses } = useExpenses();
 
-  const recurringExpenses = expenses?.filter((expense) => expense.is_recurring) || [];
+  // Filter for last month's recurring expenses
+  const currentDate = new Date();
+  const lastMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1);
+  
+  const recurringExpenses = expenses?.filter((expense) => {
+    const expenseDate = new Date(expense.date);
+    return expense.is_recurring && 
+           expenseDate.getMonth() === lastMonth.getMonth() &&
+           expenseDate.getFullYear() === lastMonth.getFullYear();
+  }) || [];
 
   if (recurringExpenses.length === 0) {
     return (
@@ -14,7 +23,7 @@ export const RecurringExpenses = () => {
         </CardHeader>
         <CardContent>
           <div className="text-center text-muted-foreground">
-            No recurring expenses found
+            No recurring expenses found for last month
           </div>
         </CardContent>
       </Card>
