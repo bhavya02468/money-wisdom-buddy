@@ -13,9 +13,19 @@ interface Expense {
   date: string;
 }
 
+// Sample data for the chart
+const sampleMonthlyData = [
+  { month: "Jan'24", amount: 3200 },
+  { month: "Feb'24", amount: 2800 },
+  { month: "Mar'24", amount: 3500 },
+  { month: "Apr'24", amount: 2900 },
+  { month: "May'24", amount: 3100 },
+  { month: "Jun'24", amount: 2750 },
+];
+
 const Dashboard = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [monthlyData, setMonthlyData] = useState<{ month: string; amount: number }[]>([]);
+  const [monthlyData, setMonthlyData] = useState<{ month: string; amount: number }[]>(sampleMonthlyData);
 
   useEffect(() => {
     const savedExpenses = localStorage.getItem("monthlyExpenses");
@@ -36,11 +46,17 @@ const Dashboard = () => {
         amount: amount as number,
       }));
 
-      setMonthlyData(chartData);
+      // Only update monthly data if we have real expenses
+      if (chartData.length > 0) {
+        setMonthlyData(chartData);
+      }
     }
   }, []);
 
-  const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+  const totalExpenses = expenses.length > 0 
+    ? expenses.reduce((sum, expense) => sum + expense.amount, 0)
+    : sampleMonthlyData.reduce((sum, data) => sum + data.amount, 0);
+    
   const monthlyIncome = 8250; // This could be made dynamic in the future
   const totalSavings = monthlyIncome - totalExpenses;
 
