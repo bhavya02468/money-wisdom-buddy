@@ -5,9 +5,23 @@ const Footer = () => {
   return (
     <footer className="bg-white border-t mt-auto">
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-lg font-semibold mb-4">FinWise</h3>
+            <Link to="/" className="inline-block mb-4">
+              <img 
+                src="/finwise-logo.svg" 
+                alt="FinWise" 
+                className="h-8"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.style.display = 'none';
+                  const parent = e.currentTarget.parentElement;
+                  if (parent) {
+                    parent.innerHTML = '<span className="text-lg font-semibold">FinWise</span>';
+                  }
+                }}
+              />
+            </Link>
             <p className="text-text-light">
               Your AI-powered financial companion for smarter money decisions.
             </p>
@@ -25,22 +39,6 @@ const Footer = () => {
                 <Link to="/auth" className="text-text-light hover:text-primary transition-colors">
                   Sign In
                 </Link>
-              </li>
-            </ul>
-          </div>
-          
-          <div>
-            <h4 className="text-lg font-semibold mb-4">Resources</h4>
-            <ul className="space-y-2">
-              <li>
-                <a href="#" className="text-text-light hover:text-primary transition-colors">
-                  Blog
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-text-light hover:text-primary transition-colors">
-                  Help Center
-                </a>
               </li>
             </ul>
           </div>

@@ -18,7 +18,7 @@ const Index = () => {
         </p>
         <Button 
           className="bg-primary hover:bg-primary-dark text-white px-8 py-6 text-lg rounded-lg"
-          onClick={() => navigate("/login")}
+          onClick={() => navigate("/auth")}
         >
           Get Started <ArrowRight className="ml-2" />
         </Button>
