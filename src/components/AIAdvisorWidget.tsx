@@ -41,11 +41,22 @@ export const AIAdvisorWidget = () => {
         <Card className="w-[350px] bg-white shadow-xl animate-fade-in">
           <div className="p-4 border-b flex justify-between items-center">
             <div className="flex items-center gap-2">
-              <img
-                src="/lovable-uploads/2cc60c20-704c-4e74-8ef7-0baba9ed0820.png"
-                alt="AI Advisor"
-                className="w-8 h-8"
-              />
+              <svg
+                width="32"
+                height="32"
+                viewBox="0 0 100 100"
+                className="rounded-full bg-primary/10 p-1"
+              >
+                <circle cx="50" cy="50" r="45" fill="#0066CC" opacity="0.2" />
+                <circle cx="35" cy="40" r="5" fill="#0066CC" /> {/* Left eye */}
+                <circle cx="65" cy="40" r="5" fill="#0066CC" /> {/* Right eye */}
+                <path
+                  d="M 35 60 Q 50 70 65 60"
+                  stroke="#0066CC"
+                  strokeWidth="3"
+                  fill="none"
+                /> {/* Smile */}
+              </svg>
               <div className="relative flex items-center">
                 <div className="w-2 h-2 bg-green-500 rounded-full absolute -left-3" />
                 <span className="text-sm font-medium">Online</span>
@@ -101,11 +112,31 @@ export const AIAdvisorWidget = () => {
           className="relative cursor-pointer hover:scale-105 transition-transform animate-floating"
           onClick={() => setIsOpen(true)}
         >
-          <img
-            src="/lovable-uploads/2cc60c20-704c-4e74-8ef7-0baba9ed0820.png"
-            alt="AI Advisor"
-            className="w-16 h-16 rounded-full border-2 border-white shadow-lg"
-          />
+          <svg
+            width="64"
+            height="64"
+            viewBox="0 0 100 100"
+            className="rounded-full border-2 border-white shadow-lg bg-primary/10"
+          >
+            <circle cx="50" cy="50" r="45" fill="#0066CC" opacity="0.2" />
+            <circle cx="35" cy="40" r="5" fill="#0066CC" /> {/* Left eye */}
+            <circle cx="65" cy="40" r="5" fill="#0066CC" /> {/* Right eye */}
+            <path
+              d="M 35 60 Q 50 70 65 60"
+              stroke="#0066CC"
+              strokeWidth="3"
+              fill="none"
+              className="animate-wave"
+            /> {/* Smile */}
+            <g className="animate-wave">
+              <path
+                d="M 75 45 Q 85 35 90 45"
+                stroke="#0066CC"
+                strokeWidth="3"
+                fill="none"
+              /> {/* Waving arm */}
+            </g>
+          </svg>
           <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
         </div>
       )}

@@ -45,6 +45,7 @@ export default {
         "fade-in": "fadeIn 0.5s ease-in-out",
         "slide-up": "slideUp 0.5s ease-out",
         "floating": "floating 3s ease-in-out infinite",
+        "wave": "wave 2s ease-in-out infinite",
       },
       keyframes: {
         fadeIn: {
@@ -58,6 +59,10 @@ export default {
         floating: {
           "0%, 100%": { transform: "translate(0, 0)" },
           "50%": { transform: "translate(0, -10px)" },
+        },
+        wave: {
+          "0%, 100%": { transform: "rotate(0deg)" },
+          "50%": { transform: "rotate(-10deg)" },
         },
       },
     },
