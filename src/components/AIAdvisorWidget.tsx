@@ -3,10 +3,12 @@ import { Card } from "@/components/ui/card";
 import { MessageCircle, Send, X } from "lucide-react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
 
 export const AIAdvisorWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [chatHistory, setChatHistory] = useState([
     {
       type: "assistant",
@@ -14,25 +16,42 @@ export const AIAdvisorWidget = () => {
     },
   ]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim()) return;
+    if (!message.trim() || isLoading) return;
 
-    // Add user message
-    setChatHistory((prev) => [...prev, { type: "user", content: message }]);
-    
-    // Simulate AI response
-    setTimeout(() => {
+    // Add user message immediately
+    const userMessage = { type: "user", content: message.trim() };
+    setChatHistory((prev) => [...prev, userMessage]);
+    setMessage("");
+    setIsLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('chat-with-ai', {
+        body: {
+          message: userMessage.content,
+          chatHistory: chatHistory,
+        },
+      });
+
+      if (error) throw error;
+
+      setChatHistory((prev) => [
+        ...prev,
+        { type: "assistant", content: data.response },
+      ]);
+    } catch (error) {
+      console.error('Error calling AI:', error);
       setChatHistory((prev) => [
         ...prev,
         {
           type: "assistant",
-          content: "I understand your question about finances. Let me help you with that. What specific aspects would you like to know more about?",
+          content: "I apologize, but I'm having trouble responding right now. Please try again later.",
         },
       ]);
-    }, 1000);
-
-    setMessage("");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -89,8 +108,9 @@ export const AIAdvisorWidget = () => {
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Type your message..."
                 className="flex-1"
+                disabled={isLoading}
               />
-              <Button type="submit" size="icon">
+              <Button type="submit" size="icon" disabled={isLoading}>
                 <Send className="h-4 w-4" />
               </Button>
             </div>
