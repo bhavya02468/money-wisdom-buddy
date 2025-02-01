@@ -1,19 +1,39 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
-import { LineChart, Line, XAxis, YAxis, PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
-import { Wallet, TrendingUp, PiggyBank, CreditCard, Shield, ListChecks, ArrowUp, ArrowDown, Target } from "lucide-react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+} from "recharts";
+import {
+  Wallet,
+  TrendingUp,
+  PiggyBank,
+  CreditCard,
+  Shield,
+  Target,
+  ArrowUp,
+  ArrowDown,
+} from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useMonthlyExpenses } from "@/hooks/useExpenses";
 import { useMonthlyIncome } from "@/hooks/useIncome";
 import { useFinancialGoals } from "@/hooks/useFinancialGoals";
+import { RecurringExpenses } from "@/components/RecurringExpenses";
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
 const Dashboard = () => {
   const { monthlyData: expenseData, spendingByCategory } = useMonthlyExpenses();
   const { monthlyData: incomeData } = useMonthlyIncome();
   const { data: goals } = useFinancialGoals();
-  
+
   // Calculate current month totals
   const currentMonthExpense = expenseData[0]?.amount || 0;
   const currentMonthIncome = incomeData[0]?.amount || 0;
@@ -66,7 +86,7 @@ const Dashboard = () => {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Financial Dashboard</h1>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card className="hover:shadow-lg transition-shadow">
           <CardContent className="p-6">
@@ -238,31 +258,9 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ListChecks className="w-5 h-5" />
-              Recent Transactions
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {expenseData.length > 0 ? (
-              <div className="space-y-4">
-                {expenseData.slice(0, 3).map((expense, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-secondary/10">
-                    <div>
-                      <p className="font-medium">{expense.month}</p>
-                      <p className="text-sm text-muted-foreground">Expenses</p>
-                    </div>
-                    <p className="font-medium text-red-500">-${expense.amount.toFixed(2)}</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <EmptyState />
-            )}
-          </CardContent>
-        </Card>
+        <div className="lg:col-span-2">
+          <RecurringExpenses />
+        </div>
       </div>
     </div>
   );
