@@ -210,16 +210,23 @@ const Dashboard = () => {
                       data={spendingByCategory}
                       cx="50%"
                       cy="50%"
+                      innerRadius={0}
                       outerRadius={100}
                       fill="#8884d8"
                       dataKey="value"
+                      nameKey="name"
                       label={({ name, percent }) => `${name} (${(percent * 100).toFixed(1)}%)`}
                     >
                       {spendingByCategory.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={COLORS[index % COLORS.length]}
+                        />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip 
+                      formatter={(value: number) => [`$${value.toFixed(2)}`, 'Amount']}
+                    />
                     <Legend />
                   </PieChart>
                 </ChartContainer>
@@ -233,7 +240,10 @@ const Dashboard = () => {
                         />
                         <span className="text-sm">{category.name}</span>
                       </div>
-                      <span className="text-sm font-medium">${category.value.toFixed(2)}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">${category.value.toFixed(2)}</span>
+                        <span className="text-xs text-gray-500">({category.percentage}%)</span>
+                      </div>
                     </div>
                   ))}
                 </div>
