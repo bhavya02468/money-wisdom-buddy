@@ -1,20 +1,61 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MessageCircle, Send, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export const AIAdvisorWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
   const [chatHistory, setChatHistory] = useState([
     {
       type: "assistant",
       content: "Hello! I'm your AI financial advisor. How can I help you today?",
     },
   ]);
+
+  // Function to get financial suggestions
+  const getFinancialSuggestions = async () => {
+    try {
+      const user = await supabase.auth.getUser();
+      if (!user.data.user) return;
+
+      const { data, error } = await supabase.functions.invoke('analyze-finances', {
+        body: { userId: user.data.user.id },
+      });
+
+      if (error) throw error;
+
+      if (data.suggestions) {
+        setChatHistory(prev => [...prev, {
+          type: "assistant",
+          content: "Based on your recent financial activity, here's a suggestion: " + data.suggestions
+        }]);
+
+        // Only show notification if chat is closed
+        if (!isOpen) {
+          toast({
+            title: "New Financial Insight Available",
+            description: "Click to open the chat and view personalized suggestions.",
+            duration: 5000,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error getting financial suggestions:', error);
+    }
+  };
+
+  // Check for suggestions periodically (every 24 hours)
+  useEffect(() => {
+    getFinancialSuggestions();
+    const interval = setInterval(getFinancialSuggestions, 24 * 60 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +77,6 @@ export const AIAdvisorWidget = () => {
 
       if (error) throw error;
 
-      // Handle the case where we get an error message from the function
       if (data.error) {
         throw new Error(data.userMessage || data.error);
       }
