@@ -32,7 +32,7 @@ const categories = [
 
 const formSchema = z.object({
   description: z.string().min(1, "Description is required"),
-  amount: z.string().min(1, "Amount is required").transform((val) => parseFloat(val)),
+  amount: z.number().min(0.01, "Amount must be greater than 0"),
   category: z.string().min(1, "Category is required"),
   date: z.string().min(1, "Date is required"),
 });
@@ -45,7 +45,7 @@ const AddIncome = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       description: "",
-      amount: "",
+      amount: 0,
       category: "",
       date: new Date().toISOString().split("T")[0],
     },
@@ -53,11 +53,18 @@ const AddIncome = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
       const { error } = await supabase.from("expenses").insert({
         description: values.description,
         amount: -values.amount, // Store income as negative expense
         category: `Income: ${values.category}`,
         date: new Date(values.date).toISOString(),
+        user_id: user.id
       });
 
       if (error) throw error;
@@ -109,7 +116,8 @@ const AddIncome = () => {
                       type="number"
                       step="0.01"
                       placeholder="Enter amount"
-                      {...field}
+                      onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                      value={field.value}
                     />
                   </FormControl>
                   <FormMessage />
