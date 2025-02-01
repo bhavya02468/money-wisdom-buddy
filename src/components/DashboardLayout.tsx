@@ -12,7 +12,8 @@ import {
   SidebarGroupLabel,
 } from "@/components/ui/sidebar";
 import { LineChart, LogOut, PlusCircle } from "lucide-react";
-import {AIAdvisorWidget} from "./AIAdvisorWidget"
+import { AIAdvisorWidget } from "./AIAdvisorWidget";
+
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
@@ -49,13 +50,13 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton>
+                    <SidebarMenuButton onClick={() => navigate("/add-expense")}>
                       <PlusCircle />
                       <span>Add Expense</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton>
+                    <SidebarMenuButton onClick={() => navigate("/add-income")}>
                       <PlusCircle />
                       <span>Add Income</span>
                     </SidebarMenuButton>
@@ -71,10 +72,8 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             </SidebarGroup>
           </SidebarContent>
         </Sidebar>
-        <main className="flex-1 p-6">
-          {children}
-        </main>
-        <AIAdvisorWidget/>
+        <main className="flex-1 p-6">{children}</main>
+        <AIAdvisorWidget />
       </div>
     </SidebarProvider>
   );
