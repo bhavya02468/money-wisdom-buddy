@@ -10,7 +10,8 @@ import {
   SidebarGroup,
   SidebarGroupContent,
 } from "@/components/ui/sidebar";
-import { Home, MessageSquare, LineChart, LogOut } from "lucide-react";
+import { Home, LineChart, LogOut } from "lucide-react";
+import { AIAdvisorWidget } from "./AIAdvisorWidget";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
@@ -41,14 +42,6 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild>
-                      <a href="/chat">
-                        <MessageSquare />
-                        <span>AI Advisor</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
                       <a href="/dashboard">
                         <LineChart />
                         <span>Dashboard</span>
@@ -66,7 +59,12 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             </SidebarGroup>
           </SidebarContent>
         </Sidebar>
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-6">
+          <div className="mb-6">
+            <AIAdvisorWidget />
+          </div>
+          {children}
+        </main>
       </div>
     </SidebarProvider>
   );
