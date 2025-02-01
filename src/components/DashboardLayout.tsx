@@ -9,9 +9,9 @@ import {
   SidebarMenuButton,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
 } from "@/components/ui/sidebar";
-import { Home, LineChart, LogOut } from "lucide-react";
-import { AIAdvisorWidget } from "./AIAdvisorWidget";
+import { LineChart, LogOut, PlusCircle } from "lucide-react";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
@@ -34,18 +34,30 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild>
-                      <a href="/">
-                        <Home />
-                        <span>Home</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
                       <a href="/dashboard">
                         <LineChart />
                         <span>Dashboard</span>
                       </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel>Quick Actions</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton>
+                      <PlusCircle />
+                      <span>Add Expense</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton>
+                      <PlusCircle />
+                      <span>Add Income</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
@@ -62,7 +74,6 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         <main className="flex-1 p-6">
           {children}
         </main>
-        <AIAdvisorWidget />
       </div>
     </SidebarProvider>
   );
