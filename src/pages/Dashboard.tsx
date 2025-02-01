@@ -20,11 +20,11 @@ const Dashboard = () => {
   useEffect(() => {
     const savedExpenses = localStorage.getItem("monthlyExpenses");
     if (savedExpenses) {
-      const parsedExpenses = JSON.parse(savedExpenses);
+      const parsedExpenses = JSON.parse(savedExpenses) as Expense[];
       setExpenses(parsedExpenses);
 
       // Process expenses into monthly data
-      const monthlyTotals = parsedExpenses.reduce((acc: { [key: string]: number }, expense: Expense) => {
+      const monthlyTotals = parsedExpenses.reduce<{ [key: string]: number }>((acc, expense) => {
         const date = new Date(expense.date);
         const monthYear = date.toLocaleString('default', { month: 'short', year: '2-digit' });
         acc[monthYear] = (acc[monthYear] || 0) + expense.amount;
@@ -33,7 +33,7 @@ const Dashboard = () => {
 
       const chartData = Object.entries(monthlyTotals).map(([month, amount]) => ({
         month,
-        amount,
+        amount: amount as number,
       }));
 
       setMonthlyData(chartData);
