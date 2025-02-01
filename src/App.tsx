@@ -9,6 +9,8 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Chat from "./pages/Chat";
 import Dashboard from "./pages/Dashboard";
+import AddExpense from "./pages/AddExpense";
+import AddIncome from "./pages/AddIncome";
 import NotFound from "./pages/NotFound";
 import Layout from "./components/Layout";
 import DashboardLayout from "./components/DashboardLayout";
@@ -111,6 +113,22 @@ const App = () => (
             element={
               <PrivateRoute>
                 <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/add-expense"
+            element={
+              <PrivateRoute>
+                <AddExpense />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/add-income"
+            element={
+              <PrivateRoute>
+                <AddIncome />
               </PrivateRoute>
             }
           />
