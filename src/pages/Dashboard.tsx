@@ -2,113 +2,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 import { Wallet, TrendingUp, PiggyBank, CreditCard, Shield, ListChecks, ArrowUp, ArrowDown } from "lucide-react";
-import { useEffect, useState } from "react";
 import { Progress } from "@/components/ui/progress";
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
-
-interface Expense {
-  id: string;
-  description: string;
-  amount: number;
-  category: string;
-  date: string;
-}
-
-// Sample data for the charts
-const sampleMonthlyData = [
-  { month: "Jan'24", amount: 3200, change: -5 },
-  { month: "Feb'24", amount: 2800, change: -12.5 },
-  { month: "Mar'24", amount: 3500, change: +25 },
-  { month: "Apr'24", amount: 2900, change: -17.1 },
-  { month: "May'24", amount: 3100, change: +6.9 },
-  { month: "Jun'24", amount: 2750, change: -11.3 },
-];
-
-// Enhanced spending by category data with descriptions
-const spendingByCategory = [
-  { 
-    name: "Housing", 
-    value: 1200,
-    description: "Rent, utilities, and home maintenance",
-    percentage: 54.5,
-    change: 5.2
-  },
-  { 
-    name: "Food", 
-    value: 500,
-    description: "Groceries and dining out",
-    percentage: 22.7,
-    change: -3.1
-  },
-  { 
-    name: "Transportation", 
-    value: 300,
-    description: "Fuel, public transit, and car maintenance",
-    percentage: 13.6,
-    change: 1.8
-  },
-  { 
-    name: "Entertainment", 
-    value: 200,
-    description: "Movies, events, and hobbies",
-    percentage: 9.2,
-    change: -2.4
-  },
-];
+import { useMonthlyExpenses } from "@/hooks/useExpenses";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 const Dashboard = () => {
-  const navigate = useNavigate();
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [monthlyData, setMonthlyData] = useState<{ month: string; amount: number; change: number }[]>(sampleMonthlyData);
-  const [progress, setProgress] = useState(68);
-  const [creditScore, setCreditScore] = useState(720);
-
-  useEffect(() => {
-    const savedExpenses = localStorage.getItem("monthlyExpenses");
-    if (savedExpenses) {
-      const parsedExpenses = JSON.parse(savedExpenses) as Expense[];
-      setExpenses(parsedExpenses);
-
-      const monthlyTotals = parsedExpenses.reduce<{ [key: string]: number }>((acc, expense) => {
-        const date = new Date(expense.date);
-        const monthYear = date.toLocaleString('default', { month: 'short', year: '2-digit' });
-        acc[monthYear] = (acc[monthYear] || 0) + expense.amount;
-        return acc;
-      }, {});
-
-      if (Object.keys(monthlyTotals).length > 0) {
-        const chartData = Object.entries(monthlyTotals).map(([month, amount], index, array) => {
-          const prevAmount = index > 0 ? array[index - 1][1] : amount;
-          const change = ((amount - prevAmount) / prevAmount) * 100;
-          return {
-            month,
-            amount: amount as number,
-            change: Number(change.toFixed(1))
-          };
-        });
-        setMonthlyData(chartData);
-      }
-    }
-  }, []);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/');
-  };
-
-  const totalExpenses = expenses.length > 0 
-    ? expenses.reduce((sum, expense) => sum + expense.amount, 0)
-    : sampleMonthlyData.reduce((sum, data) => sum + data.amount, 0);
-    
-  const monthlyIncome = 8250;
+  const { monthlyData, spendingByCategory } = useMonthlyExpenses();
+  const progress = 68;
+  const creditScore = 720;
+  
+  // Calculate totals
+  const currentMonth = monthlyData[0] || { amount: 0, change: 0 };
+  const monthlyIncome = 8250; // This could be made dynamic in the future
+  const totalExpenses = currentMonth.amount;
   const totalSavings = monthlyIncome - totalExpenses;
-
-  // Get previous month's values for comparison
-  const currentMonth = monthlyData[monthlyData.length - 1];
-  const previousMonth = monthlyData[monthlyData.length - 2];
   
   const getChangeIndicator = (change: number) => {
     if (change === 0) return null;
@@ -126,9 +34,7 @@ const Dashboard = () => {
   };
 
   // Sort categories by value to get top spenders
-  const topSpendingCategories = [...spendingByCategory]
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 3);
+  const topSpendingCategories = spendingByCategory.slice(0, 3);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -143,11 +49,8 @@ const Dashboard = () => {
               <div>
                 <p className="text-sm text-text-light">Total Balance</p>
                 <p className="text-2xl font-semibold">
-                  ${(monthlyIncome - totalExpenses).toFixed(2)}
-                  <span className="text-sm ml-2 text-gray-500">
-                    {getChangeIndicator(currentMonth?.change || 0)}
-                    {currentMonth?.change || 0}%
-                  </span>
+                  ${totalSavings.toFixed(2)}
+                  {getChangeIndicator(currentMonth.change)}
                 </p>
               </div>
               <Wallet className="w-8 h-8 text-primary" />
@@ -162,9 +65,7 @@ const Dashboard = () => {
                 <p className="text-sm text-text-light">Monthly Income</p>
                 <p className="text-2xl font-semibold">
                   ${monthlyIncome.toFixed(2)}
-                  <span className="text-sm ml-2 text-gray-500">
-                    {getChangeIndicator(0)}0%
-                  </span>
+                  {getChangeIndicator(0)}
                 </p>
               </div>
               <TrendingUp className="w-8 h-8 text-secondary" />
@@ -179,10 +80,7 @@ const Dashboard = () => {
                 <p className="text-sm text-text-light">Total Savings</p>
                 <p className="text-2xl font-semibold">
                   ${totalSavings.toFixed(2)}
-                  <span className="text-sm ml-2 text-gray-500">
-                    {getChangeIndicator(currentMonth?.change || 0)}
-                    {currentMonth?.change || 0}%
-                  </span>
+                  {getChangeIndicator(currentMonth.change)}
                 </p>
               </div>
               <PiggyBank className="w-8 h-8 text-accent" />
@@ -197,10 +95,7 @@ const Dashboard = () => {
                 <p className="text-sm text-text-light">Total Expenses</p>
                 <p className="text-2xl font-semibold">
                   ${totalExpenses.toFixed(2)}
-                  <span className="text-sm ml-2 text-gray-500">
-                    {getChangeIndicator(currentMonth?.change || 0)}
-                    {currentMonth?.change || 0}%
-                  </span>
+                  {getChangeIndicator(currentMonth.change)}
                 </p>
               </div>
               <CreditCard className="w-8 h-8 text-red-500" />
@@ -261,7 +156,8 @@ const Dashboard = () => {
                       {index + 1}. {category.name}
                     </span>
                     <span className="text-sm font-medium">
-                      ${category.value} ({category.percentage}%)
+                      ${category.value.toFixed(2)} ({category.percentage}%)
+                      {getChangeIndicator(category.change)}
                     </span>
                   </div>
                 ))}
