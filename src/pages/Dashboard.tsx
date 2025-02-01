@@ -27,6 +27,13 @@ const Dashboard = () => {
   // Get the primary financial goal (assuming it's the first one)
   const primaryGoal = goals?.[0];
   const goalProgress = primaryGoal ? (primaryGoal.current_amount / primaryGoal.target_amount) * 100 : 0;
+
+  const EmptyState = () => (
+    <div className="flex flex-col items-center justify-center p-8 text-center">
+      <p className="text-lg text-gray-500 mb-4">No data available</p>
+      <p className="text-sm text-gray-400">Start by adding some income or expenses</p>
+    </div>
+  );
   
   // Prepare data for line chart (last 6 months)
   const lineChartData = expenseData.slice(0, 6).map((expense, index) => {
@@ -128,20 +135,24 @@ const Dashboard = () => {
             <CardTitle>Balance & Expenses Trend</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
-              <ChartContainer config={{ 
-                balance: { color: "#0066CC" },
-                expense: { color: "#FF4444" }
-              }}>
-                <LineChart data={lineChartData}>
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <ChartTooltip />
-                  <Line type="monotone" dataKey="balance" stroke="var(--color-balance)" name="Balance" />
-                  <Line type="monotone" dataKey="expense" stroke="var(--color-expense)" name="Expenses" />
-                </LineChart>
-              </ChartContainer>
-            </div>
+            {lineChartData.length > 0 ? (
+              <div className="h-[300px]">
+                <ChartContainer config={{ 
+                  balance: { color: "#0066CC" },
+                  expense: { color: "#FF4444" }
+                }}>
+                  <LineChart data={lineChartData}>
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <ChartTooltip />
+                    <Line type="monotone" dataKey="balance" stroke="var(--color-balance)" name="Balance" />
+                    <Line type="monotone" dataKey="expense" stroke="var(--color-expense)" name="Expenses" />
+                  </LineChart>
+                </ChartContainer>
+              </div>
+            ) : (
+              <EmptyState />
+            )}
           </CardContent>
         </Card>
 
@@ -150,27 +161,31 @@ const Dashboard = () => {
             <CardTitle>Monthly Expenses by Category</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px] relative">
-              <ChartContainer config={{}}>
-                <PieChart>
-                  <Pie
-                    data={spendingByCategory}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(1)}%)`}
-                  >
-                    {spendingByCategory.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ChartContainer>
-            </div>
+            {spendingByCategory.length > 0 ? (
+              <div className="h-[300px] relative">
+                <ChartContainer config={{}}>
+                  <PieChart>
+                    <Pie
+                      data={spendingByCategory}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label={({ name, percent }) => `${name} (${(percent * 100).toFixed(1)}%)`}
+                    >
+                      {spendingByCategory.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ChartContainer>
+              </div>
+            ) : (
+              <EmptyState />
+            )}
           </CardContent>
         </Card>
       </div>
@@ -184,23 +199,21 @@ const Dashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {primaryGoal ? (
-                <>
-                  <h3 className="font-medium">{primaryGoal.name}</h3>
-                  <Progress value={goalProgress} className="h-2" />
-                  <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>${primaryGoal.current_amount.toFixed(2)}</span>
-                    <span>${primaryGoal.target_amount.toFixed(2)}</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    You're {goalProgress.toFixed(1)}% of the way to your goal
-                  </p>
-                </>
-              ) : (
-                <p className="text-sm text-muted-foreground">No financial goals set</p>
-              )}
-            </div>
+            {primaryGoal ? (
+              <div className="space-y-4">
+                <h3 className="font-medium">{primaryGoal.name}</h3>
+                <Progress value={goalProgress} className="h-2" />
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>${primaryGoal.current_amount.toFixed(2)}</span>
+                  <span>${primaryGoal.target_amount.toFixed(2)}</span>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  You're {goalProgress.toFixed(1)}% of the way to your goal
+                </p>
+              </div>
+            ) : (
+              <EmptyState />
+            )}
           </CardContent>
         </Card>
 
@@ -233,17 +246,21 @@ const Dashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {expenseData.slice(0, 3).map((expense, index) => (
-                <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-secondary/10">
-                  <div>
-                    <p className="font-medium">{expense.month}</p>
-                    <p className="text-sm text-muted-foreground">Expenses</p>
+            {expenseData.length > 0 ? (
+              <div className="space-y-4">
+                {expenseData.slice(0, 3).map((expense, index) => (
+                  <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-secondary/10">
+                    <div>
+                      <p className="font-medium">{expense.month}</p>
+                      <p className="text-sm text-muted-foreground">Expenses</p>
+                    </div>
+                    <p className="font-medium text-red-500">-${expense.amount.toFixed(2)}</p>
                   </div>
-                  <p className="font-medium text-red-500">-${expense.amount.toFixed(2)}</p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <EmptyState />
+            )}
           </CardContent>
         </Card>
       </div>
