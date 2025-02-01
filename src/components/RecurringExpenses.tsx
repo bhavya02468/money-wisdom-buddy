@@ -42,7 +42,7 @@ export const RecurringExpenses = () => {
               </p>
             </div>
           ))}
-        </CardContent>
+        </div>
       </CardContent>
     </Card>
   );
