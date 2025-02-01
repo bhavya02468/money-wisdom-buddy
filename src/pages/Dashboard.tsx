@@ -223,9 +223,26 @@ const Dashboard = () => {
                     <Legend />
                   </PieChart>
                 </ChartContainer>
+                <div className="mt-4 space-y-2">
+                  {spendingByCategory.map((category, index) => (
+                    <div key={category.name} className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <div
+                          className="w-3 h-3 rounded-full mr-2"
+                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                        />
+                        <span className="text-sm">{category.name}</span>
+                      </div>
+                      <span className="text-sm font-medium">${category.value.toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             ) : (
-              <EmptyState />
+              <div className="flex flex-col items-center justify-center p-8 text-center">
+                <p className="text-lg text-gray-500 mb-4">No expense data available</p>
+                <p className="text-sm text-gray-400">Start by adding some expenses</p>
+              </div>
             )}
           </CardContent>
         </Card>
