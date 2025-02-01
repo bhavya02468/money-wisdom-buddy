@@ -38,7 +38,7 @@ export const AIAdvisorWidget = () => {
   return (
     <div className="fixed bottom-4 right-4 z-50">
       {isOpen ? (
-        <Card className="w-[350px] bg-white shadow-xl">
+        <Card className="w-[350px] bg-white shadow-xl animate-fade-in">
           <div className="p-4 border-b flex justify-between items-center">
             <div className="flex items-center gap-2">
               <img
@@ -98,7 +98,7 @@ export const AIAdvisorWidget = () => {
         </Card>
       ) : (
         <div 
-          className="relative cursor-pointer hover:scale-105 transition-transform"
+          className="relative cursor-pointer hover:scale-105 transition-transform animate-floating"
           onClick={() => setIsOpen(true)}
         >
           <img
