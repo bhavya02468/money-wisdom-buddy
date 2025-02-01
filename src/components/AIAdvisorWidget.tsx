@@ -36,6 +36,11 @@ export const AIAdvisorWidget = () => {
 
       if (error) throw error;
 
+      // Handle the case where we get an error message from the function
+      if (data.error) {
+        throw new Error(data.userMessage || data.error);
+      }
+
       setChatHistory((prev) => [
         ...prev,
         { type: "assistant", content: data.response },
@@ -46,7 +51,7 @@ export const AIAdvisorWidget = () => {
         ...prev,
         {
           type: "assistant",
-          content: "I apologize, but I'm having trouble responding right now. Please try again later.",
+          content: error.message || "I apologize, but I'm having trouble responding right now. Please try again later.",
         },
       ]);
     } finally {
