@@ -148,20 +148,6 @@ const Dashboard = () => {
                   <Legend />
                 </PieChart>
               </ChartContainer>
-              <div className="mt-4">
-                <h4 className="font-semibold mb-2">Top Spending Categories:</h4>
-                {topSpendingCategories.map((category, index) => (
-                  <div key={index} className="flex justify-between items-center mb-2">
-                    <span className="text-sm">
-                      {index + 1}. {category.name}
-                    </span>
-                    <span className="text-sm font-medium">
-                      ${category.value.toFixed(2)} ({category.percentage}%)
-                      {getChangeIndicator(category.change)}
-                    </span>
-                  </div>
-                ))}
-              </div>
             </div>
           </CardContent>
         </Card>

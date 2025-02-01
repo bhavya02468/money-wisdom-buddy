@@ -41,6 +41,12 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
                       </a>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton onClick={handleLogout}>
+                      <LogOut />
+                      <span>Logout</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -59,12 +65,6 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
                     <SidebarMenuButton onClick={() => navigate("/add-income")}>
                       <PlusCircle />
                       <span>Add Income</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton onClick={handleLogout}>
-                      <LogOut />
-                      <span>Logout</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
