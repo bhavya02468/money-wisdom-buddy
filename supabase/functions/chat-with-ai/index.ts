@@ -17,6 +17,11 @@ serve(async (req) => {
     console.log('Received message:', message);
     console.log('Chat history length:', chatHistory.length);
 
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key not configured');
+    }
+
     // Convert chat history to OpenAI format
     const messages = [
       {
@@ -34,11 +39,11 @@ serve(async (req) => {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo',  // Using a more cost-effective model
+        model: 'gpt-4o-mini',  // Using the more cost-effective model
         messages,
         temperature: 0.7,
         max_tokens: 150,  // Limiting response length to reduce token usage
