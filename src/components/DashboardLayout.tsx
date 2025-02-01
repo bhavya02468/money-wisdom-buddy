@@ -78,7 +78,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             </SidebarGroup>
           </SidebarContent>
         </Sidebar>
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 px-6 py-0">{children}</main>
         <AIAdvisorWidget />
       </div>
     </SidebarProvider>

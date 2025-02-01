@@ -7,20 +7,8 @@ const Footer = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <Link to="/" className="inline-block mb-4">
-              <img 
-                src="/finwise-logo.svg" 
-                alt="FinWise" 
-                className="h-8"
-                onError={(e) => {
-                  e.currentTarget.onerror = null;
-                  e.currentTarget.style.display = 'none';
-                  const parent = e.currentTarget.parentElement;
-                  if (parent) {
-                    parent.innerHTML = '<span className="text-lg font-semibold">FinWise</span>';
-                  }
-                }}
-              />
+          <Link to="/" className="flex items-center space-x-2">
+              <span className="text-primary text-2xl font-bold">FinWise</span>
             </Link>
             <p className="text-text-light">
               Your AI-powered financial companion for smarter money decisions.

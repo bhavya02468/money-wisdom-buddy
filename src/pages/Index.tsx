@@ -32,13 +32,6 @@ const Index = () => {
           <p className="text-text-light mb-4">
             Get instant answers to your financial questions from our AI advisor.
           </p>
-          <Button 
-            variant="link" 
-            className="text-primary hover:text-primary-dark p-0 h-auto"
-            onClick={() => navigate("/login")}
-          >
-            Start Chat <ArrowRight className="ml-1 w-4 h-4" />
-          </Button>
         </Card>
 
         <Card className="p-6 animate-slide-up hover:shadow-lg transition-shadow [animation-delay:200ms]">
@@ -47,13 +40,6 @@ const Index = () => {
           <p className="text-text-light mb-4">
             Track your financial health with our comprehensive dashboard.
           </p>
-          <Button 
-            variant="link" 
-            className="text-primary hover:text-primary-dark p-0 h-auto"
-            onClick={() => navigate("/login")}
-          >
-            View Dashboard <ArrowRight className="ml-1 w-4 h-4" />
-          </Button>
         </Card>
 
         <Card className="p-6 animate-slide-up hover:shadow-lg transition-shadow [animation-delay:400ms]">
@@ -62,13 +48,6 @@ const Index = () => {
           <p className="text-text-light mb-4">
             Learn about personal finance with our curated resources.
           </p>
-          <Button 
-            variant="link" 
-            className="text-primary hover:text-primary-dark p-0 h-auto"
-            onClick={() => navigate("/login")}
-          >
-            Start Learning <ArrowRight className="ml-1 w-4 h-4" />
-          </Button>
         </Card>
       </div>
     </div>
