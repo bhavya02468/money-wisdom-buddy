@@ -19,12 +19,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               <Link to="/dashboard" className="text-text hover:text-primary transition-colors">
                 Dashboard
               </Link>
-              <Link to="/learn" className="text-text hover:text-primary transition-colors">
-                Learn
-              </Link>
-              <Link to="/expenses" className="text-text hover:text-primary transition-colors">
-                Expenses
-              </Link>
             </div>
           </div>
         </div>
