@@ -14,6 +14,9 @@ import AddIncome from "./pages/AddIncome";
 import NotFound from "./pages/NotFound";
 import Layout from "./components/Layout";
 import DashboardLayout from "./components/DashboardLayout";
+import Investments from "./pages/Investments";
+import Stocks from "./pages/Stocks";
+import RealEstate from "./pages/RealEstate";
 
 const queryClient = new QueryClient();
 
@@ -129,6 +132,30 @@ const App = () => (
             element={
               <PrivateRoute>
                 <AddIncome />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/investments"
+            element={
+              <PrivateRoute>
+                <Investments />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/stocks"
+            element={
+              <PrivateRoute>
+                <Stocks />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/real-estate"
+            element={
+              <PrivateRoute>
+                <RealEstate />
               </PrivateRoute>
             }
           />
