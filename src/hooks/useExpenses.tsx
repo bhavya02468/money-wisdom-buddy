@@ -54,32 +54,31 @@ export const useMonthlyExpenses = () => {
     };
   });
 
-  // Calculate spending by category for the current month
-  const currentDate = new Date();
-  const currentMonth = currentDate.getMonth();
-  const currentYear = currentDate.getFullYear();
-
-  const currentMonthExpenses = expenses.filter(expense => {
-    const expenseDate = new Date(expense.date);
-    return expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear;
-  });
-
-  const categoryTotals = currentMonthExpenses.reduce<{ [key: string]: number }>((acc, expense) => {
-    acc[expense.category] = (acc[expense.category] || 0) + expense.amount;
+  // Calculate total spending by category (for all time)
+  const categoryTotals = expenses.reduce<{ [key: string]: number }>((acc, expense) => {
+    const category = expense.category || 'Uncategorized';
+    acc[category] = (acc[category] || 0) + expense.amount;
     return acc;
   }, {});
 
   const totalSpent = Object.values(categoryTotals).reduce((sum, amount) => sum + amount, 0);
 
+  // Transform category totals into the format needed for the pie chart
   const spendingByCategory = Object.entries(categoryTotals).map(([name, value]) => ({
     name,
     value,
     description: `${name} expenses`,
-    percentage: Number(((value / totalSpent) * 100).toFixed(1)),
-    change: 0 // We'll calculate this in a moment
+    percentage: Number(((value / totalSpent) * 100).toFixed(1))
   }));
 
+  // Sort categories by value (highest to lowest)
+  spendingByCategory.sort((a, b) => b.value - a.value);
+
   // Calculate category changes from previous month
+  const currentDate = new Date();
+  const currentMonth = currentDate.getMonth();
+  const currentYear = currentDate.getFullYear();
+
   const previousMonthExpenses = expenses.filter(expense => {
     const expenseDate = new Date(expense.date);
     return expenseDate.getMonth() === (currentMonth - 1) && expenseDate.getFullYear() === currentYear;
@@ -92,13 +91,14 @@ export const useMonthlyExpenses = () => {
 
   // Update change values in spendingByCategory
   spendingByCategory.forEach(category => {
-    const previousAmount = previousCategoryTotals[category.name] || category.value;
-    const change = ((category.value - previousAmount) / previousAmount) * 100;
+    const previousAmount = previousCategoryTotals[category.name] || 0;
+    const currentAmount = category.value;
+    const change = previousAmount === 0 ? 0 : ((currentAmount - previousAmount) / previousAmount) * 100;
     category.change = Number(change.toFixed(1));
   });
 
   return {
     monthlyData: monthlyData.reverse(), // Most recent first
-    spendingByCategory: spendingByCategory.sort((a, b) => b.value - a.value), // Sorted by value
+    spendingByCategory, // Sorted by value
   };
 };
