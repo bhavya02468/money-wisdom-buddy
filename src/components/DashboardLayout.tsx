@@ -12,7 +12,7 @@ import {
   SidebarGroupLabel,
 } from "@/components/ui/sidebar";
 import { LineChart, LogOut, PlusCircle } from "lucide-react";
-
+import {AIAdvisorWidget} from "./AIAdvisorWidget"
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
