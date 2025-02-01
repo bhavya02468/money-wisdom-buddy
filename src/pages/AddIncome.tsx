@@ -59,10 +59,10 @@ const AddIncome = () => {
         throw new Error("User not authenticated");
       }
 
-      const { error } = await supabase.from("expenses").insert({
+      const { error } = await supabase.from("income").insert({
         description: values.description,
-        amount: -values.amount, // Store income as negative expense
-        category: `Income: ${values.category}`,
+        amount: values.amount,
+        category: values.category,
         date: new Date(values.date).toISOString(),
         user_id: user.id
       });
