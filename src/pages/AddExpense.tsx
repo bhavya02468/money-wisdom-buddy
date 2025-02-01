@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { TransactionHistory } from "@/components/TransactionHistory";
@@ -39,6 +40,7 @@ const formSchema = z.object({
   amount: z.number().min(0.01, "Amount must be greater than 0"),
   category: z.string().min(1, "Category is required"),
   date: z.string().min(1, "Date is required"),
+  isRecurring: z.boolean().default(false),
 });
 
 const AddExpense = () => {
@@ -53,6 +55,7 @@ const AddExpense = () => {
       amount: 0,
       category: "",
       date: new Date().toISOString().split("T")[0],
+      isRecurring: false,
     },
   });
 
@@ -69,7 +72,8 @@ const AddExpense = () => {
         amount: values.amount,
         category: values.category,
         date: new Date(values.date).toISOString(),
-        user_id: user.id
+        user_id: user.id,
+        is_recurring: values.isRecurring,
       });
 
       if (error) throw error;
@@ -172,6 +176,27 @@ const AddExpense = () => {
                       <Input type="date" {...field} />
                     </FormControl>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="isRecurring"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Recurring Expense</FormLabel>
+                      <div className="text-sm text-muted-foreground">
+                        Mark if this is a monthly recurring expense
+                      </div>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
                   </FormItem>
                 )}
               />
