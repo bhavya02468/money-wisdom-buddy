@@ -11,6 +11,7 @@ import Chat from "./pages/Chat";
 import Dashboard from "./pages/Dashboard";
 import AddExpense from "./pages/AddExpense";
 import AddIncome from "./pages/AddIncome";
+import Investments from "./pages/Investments";
 import NotFound from "./pages/NotFound";
 import Layout from "./components/Layout";
 import DashboardLayout from "./components/DashboardLayout";
@@ -129,6 +130,14 @@ const App = () => (
             element={
               <PrivateRoute>
                 <AddIncome />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/investments"
+            element={
+              <PrivateRoute>
+                <Investments />
               </PrivateRoute>
             }
           />
