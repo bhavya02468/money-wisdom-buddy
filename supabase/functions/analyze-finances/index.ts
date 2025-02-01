@@ -8,7 +8,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -46,28 +45,31 @@ serve(async (req) => {
     const income = incomeResponse.data || [];
     const goals = goalsResponse.data || [];
 
-    // Calculate key metrics
     const totalExpenses = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
     const totalIncome = income.reduce((sum, inc) => sum + Number(inc.amount), 0);
     const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
     
-    // Group expenses by category
     const expensesByCategory = expenses.reduce((acc, exp) => {
       acc[exp.category] = (acc[exp.category] || 0) + Number(exp.amount);
       return acc;
     }, {} as Record<string, number>);
 
-    console.log('Preparing analysis prompt...');
+    console.log('Preparing Montreal-specific analysis prompt...');
     const analysisPrompt = `
-      As a financial advisor, analyze this user's financial data:
+      As a financial advisor familiar with Montreal downtown, analyze this data:
       - Monthly Income: $${totalIncome}
       - Monthly Expenses: $${totalExpenses}
       - Savings Rate: ${savingsRate.toFixed(1)}%
       - Expense Categories: ${JSON.stringify(expensesByCategory)}
       - Financial Goals: ${goals.map(g => `${g.name}: $${g.target_amount}`).join(', ')}
 
-      Based on this data, provide 2-3 specific, actionable suggestions to help them save money and achieve their financial goals. 
-      Keep the response concise and practical. Focus on their highest expenses and areas with the most potential for savings.
+      Provide ONE specific, actionable suggestion (max 80 words) focusing on:
+      1. Montreal-specific savings opportunities (e.g., STM OPUS card deals, student discounts)
+      2. Local subscription alternatives (e.g., independent gym deals vs. chain gyms)
+      3. Downtown Montreal budget tips (e.g., affordable lunch spots, happy hour deals)
+      4. Seasonal money-saving opportunities in Montreal
+
+      Keep the response very concise and practical, focusing on unique Montreal downtown opportunities.
     `;
 
     console.log('Calling OpenAI API...');
@@ -78,11 +80,11 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful financial advisor. Provide specific, actionable advice based on real financial data.'
+            content: 'You are a helpful financial advisor based in Montreal downtown. Provide specific, actionable advice based on real financial data and local opportunities.'
           },
           {
             role: 'user',
@@ -90,6 +92,7 @@ serve(async (req) => {
           }
         ],
         temperature: 0.7,
+        max_tokens: 120,
       }),
     });
 
@@ -102,7 +105,7 @@ serve(async (req) => {
     const aiData = await aiResponse.json();
     const suggestions = aiData.choices[0].message.content;
 
-    console.log('Successfully generated suggestions');
+    console.log('Successfully generated Montreal-specific suggestions');
     return new Response(
       JSON.stringify({ suggestions }),
       { 
