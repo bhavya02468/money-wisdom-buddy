@@ -9,6 +9,14 @@ interface Expense {
   date: string;
 }
 
+interface CategorySpending {
+  name: string;
+  value: number;
+  description: string;
+  percentage: number;
+  change: number;  // Added this to the interface
+}
+
 export const useExpenses = () => {
   const fetchExpenses = async () => {
     const { data, error } = await supabase
@@ -64,11 +72,12 @@ export const useMonthlyExpenses = () => {
   const totalSpent = Object.values(categoryTotals).reduce((sum, amount) => sum + amount, 0);
 
   // Transform category totals into the format needed for the pie chart
-  const spendingByCategory = Object.entries(categoryTotals).map(([name, value]) => ({
+  const spendingByCategory: CategorySpending[] = Object.entries(categoryTotals).map(([name, value]) => ({
     name,
     value,
     description: `${name} expenses`,
-    percentage: Number(((value / totalSpent) * 100).toFixed(1))
+    percentage: Number(((value / totalSpent) * 100).toFixed(1)),
+    change: 0  // Initialize with 0, will update later
   }));
 
   // Sort categories by value (highest to lowest)
