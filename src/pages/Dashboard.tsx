@@ -1,9 +1,10 @@
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis } from "recharts";
-import { Wallet, TrendingUp, PiggyBank, CreditCard } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell } from "recharts";
+import { Wallet, TrendingUp, PiggyBank, CreditCard, Shield, ListChecks } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Progress } from "@/components/ui/progress";
 
 interface Expense {
   id: string;
@@ -13,7 +14,7 @@ interface Expense {
   date: string;
 }
 
-// Sample data for the chart
+// Sample data for the charts
 const sampleMonthlyData = [
   { month: "Jan'24", amount: 3200 },
   { month: "Feb'24", amount: 2800 },
@@ -23,9 +24,21 @@ const sampleMonthlyData = [
   { month: "Jun'24", amount: 2750 },
 ];
 
+// Sample data for spending by category
+const spendingByCategory = [
+  { name: "Housing", value: 1200 },
+  { name: "Food", value: 500 },
+  { name: "Transportation", value: 300 },
+  { name: "Entertainment", value: 200 },
+];
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+
 const Dashboard = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [monthlyData, setMonthlyData] = useState<{ month: string; amount: number }[]>(sampleMonthlyData);
+  const [progress, setProgress] = useState(68); // Sample progress for financial goal
+  const [creditScore, setCreditScore] = useState(720); // Sample credit score
 
   useEffect(() => {
     const savedExpenses = localStorage.getItem("monthlyExpenses");
@@ -115,23 +128,120 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Monthly Expenses Overview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ChartContainer config={{ amount: { color: "#0066CC" } }}>
-                <BarChart data={monthlyData}>
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <ChartTooltip />
-                  <Bar dataKey="amount" fill="var(--color-amount)" />
-                </BarChart>
-              </ChartContainer>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Monthly Expenses Overview */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Monthly Expenses Overview</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ChartContainer config={{ amount: { color: "#0066CC" } }}>
+                  <BarChart data={monthlyData}>
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <ChartTooltip />
+                    <Bar dataKey="amount" fill="var(--color-amount)" />
+                  </BarChart>
+                </ChartContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Spending by Category */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Spending by Category</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ChartContainer config={{}}>
+                  <PieChart>
+                    <Pie
+                      data={spendingByCategory}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label
+                    >
+                      {spendingByCategory.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <ChartTooltip />
+                  </PieChart>
+                </ChartContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Financial Goal Progress */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <PiggyBank className="w-5 h-5" />
+                Financial Goal Progress
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <Progress value={progress} className="h-2" />
+                <p className="text-sm text-muted-foreground">
+                  You're {progress}% of the way to your savings goal
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Credit Score Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="w-5 h-5" />
+                Credit Score
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center">
+                <div className="text-4xl font-bold text-primary mb-2">{creditScore}</div>
+                <p className="text-sm text-muted-foreground">
+                  Your credit score is {creditScore >= 700 ? 'Excellent' : creditScore >= 650 ? 'Good' : 'Fair'}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Subscription Analysis */}
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ListChecks className="w-5 h-5" />
+                Active Subscriptions
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[
+                  { name: "Netflix", amount: 15.99, date: "Monthly on 15th" },
+                  { name: "Spotify", amount: 9.99, date: "Monthly on 1st" },
+                  { name: "Gym Membership", amount: 49.99, date: "Monthly on 5th" }
+                ].map((sub, index) => (
+                  <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-secondary/10">
+                    <div>
+                      <p className="font-medium">{sub.name}</p>
+                      <p className="text-sm text-muted-foreground">{sub.date}</p>
+                    </div>
+                    <p className="font-medium">${sub.amount}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </Layout>
   );
