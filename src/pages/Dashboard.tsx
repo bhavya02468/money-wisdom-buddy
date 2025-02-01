@@ -1,23 +1,36 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
+import { LineChart, Line, XAxis, YAxis, PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 import { Wallet, TrendingUp, PiggyBank, CreditCard, Shield, ListChecks, ArrowUp, ArrowDown } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useMonthlyExpenses } from "@/hooks/useExpenses";
+import { useMonthlyIncome } from "@/hooks/useIncome";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 const Dashboard = () => {
-  const { monthlyData, spendingByCategory } = useMonthlyExpenses();
+  const { monthlyData: expenseData, spendingByCategory } = useMonthlyExpenses();
+  const { monthlyData: incomeData } = useMonthlyIncome();
   const progress = 68;
   const creditScore = 720;
   
-  // Calculate totals
-  const currentMonth = monthlyData[0] || { amount: 0, change: 0 };
-  const monthlyIncome = 8250; // This could be made dynamic in the future
-  const totalExpenses = currentMonth.amount;
-  const totalSavings = monthlyIncome - totalExpenses;
+  // Calculate current month totals
+  const currentMonthExpense = expenseData[0]?.amount || 0;
+  const currentMonthIncome = incomeData[0]?.amount || 0;
+  const monthlySavings = currentMonthIncome - currentMonthExpense;
+  const totalBalance = monthlySavings; // This could be accumulated over time if needed
   
+  // Prepare data for line chart (last 4 months)
+  const lineChartData = expenseData.slice(0, 4).map((expense, index) => {
+    const income = incomeData[index] || { amount: 0 };
+    const balance = income.amount - expense.amount;
+    return {
+      month: expense.month,
+      expense: expense.amount,
+      balance: balance
+    };
+  });
+
   const getChangeIndicator = (change: number) => {
     if (change === 0) return null;
     return change > 0 ? (
@@ -33,9 +46,6 @@ const Dashboard = () => {
     );
   };
 
-  // Sort categories by value to get top spenders
-  const topSpendingCategories = spendingByCategory.slice(0, 3);
-
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
@@ -49,8 +59,8 @@ const Dashboard = () => {
               <div>
                 <p className="text-sm text-text-light">Total Balance</p>
                 <p className="text-2xl font-semibold">
-                  ${totalSavings.toFixed(2)}
-                  {getChangeIndicator(currentMonth.change)}
+                  ${totalBalance.toFixed(2)}
+                  {getChangeIndicator(expenseData[0]?.change || 0)}
                 </p>
               </div>
               <Wallet className="w-8 h-8 text-primary" />
@@ -64,8 +74,8 @@ const Dashboard = () => {
               <div>
                 <p className="text-sm text-text-light">Monthly Income</p>
                 <p className="text-2xl font-semibold">
-                  ${monthlyIncome.toFixed(2)}
-                  {getChangeIndicator(0)}
+                  ${currentMonthIncome.toFixed(2)}
+                  {getChangeIndicator(incomeData[0]?.change || 0)}
                 </p>
               </div>
               <TrendingUp className="w-8 h-8 text-secondary" />
@@ -77,10 +87,10 @@ const Dashboard = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-text-light">Total Savings</p>
+                <p className="text-sm text-text-light">Monthly Savings</p>
                 <p className="text-2xl font-semibold">
-                  ${totalSavings.toFixed(2)}
-                  {getChangeIndicator(currentMonth.change)}
+                  ${monthlySavings.toFixed(2)}
+                  {getChangeIndicator(expenseData[0]?.change || 0)}
                 </p>
               </div>
               <PiggyBank className="w-8 h-8 text-accent" />
@@ -92,10 +102,10 @@ const Dashboard = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-text-light">Total Expenses</p>
+                <p className="text-sm text-text-light">Monthly Expenses</p>
                 <p className="text-2xl font-semibold">
-                  ${totalExpenses.toFixed(2)}
-                  {getChangeIndicator(currentMonth.change)}
+                  ${currentMonthExpense.toFixed(2)}
+                  {getChangeIndicator(expenseData[0]?.change || 0)}
                 </p>
               </div>
               <CreditCard className="w-8 h-8 text-red-500" />
@@ -107,17 +117,21 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <Card>
           <CardHeader>
-            <CardTitle>Monthly Expenses Overview</CardTitle>
+            <CardTitle>Balance & Expenses Trend</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
-              <ChartContainer config={{ amount: { color: "#0066CC" } }}>
-                <BarChart data={monthlyData}>
+              <ChartContainer config={{ 
+                balance: { color: "#0066CC" },
+                expense: { color: "#FF4444" }
+              }}>
+                <LineChart data={lineChartData}>
                   <XAxis dataKey="month" />
                   <YAxis />
                   <ChartTooltip />
-                  <Bar dataKey="amount" fill="var(--color-amount)" />
-                </BarChart>
+                  <Line type="monotone" dataKey="balance" stroke="var(--color-balance)" name="Balance" />
+                  <Line type="monotone" dataKey="expense" stroke="var(--color-expense)" name="Expenses" />
+                </LineChart>
               </ChartContainer>
             </div>
           </CardContent>
@@ -125,7 +139,7 @@ const Dashboard = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Spending by Category</CardTitle>
+            <CardTitle>Monthly Expenses by Category</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[300px] relative">
