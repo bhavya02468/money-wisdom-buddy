@@ -43,7 +43,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo',  // Using the correct model name
+        model: 'gpt-4o-mini',  // Using the recommended cost-effective model
         messages,
         temperature: 0.7,
         max_tokens: 150,  // Limiting response length to reduce token usage
@@ -56,7 +56,7 @@ serve(async (req) => {
       
       // Check if it's a quota error
       if (errorText.includes('insufficient_quota')) {
-        throw new Error('OpenAI API quota exceeded. Please check your billing details or try again later.');
+        throw new Error('Our AI service is currently experiencing high demand. Please try again in a few minutes.');
       }
       
       throw new Error(`OpenAI API error: ${errorText}`);
@@ -75,7 +75,7 @@ serve(async (req) => {
     
     // Provide a more user-friendly error message
     const userMessage = error.message.includes('insufficient_quota')
-      ? "I'm currently unable to respond due to technical limitations. Please try again later."
+      ? "Our AI service is currently experiencing high demand. Please try again in a few minutes."
       : "I apologize, but I'm having trouble responding right now. Please try again later.";
 
     return new Response(
