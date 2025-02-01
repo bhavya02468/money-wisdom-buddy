@@ -31,7 +31,7 @@ const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
 const getCreditScoreColor = (score: number) => {
   if (score >= 800) return "#9b87f5"; // Excellent
-  if (score >= 740) return "#7E69AB"; // Very Good
+  if (score >= 740) return "#31ED50"; // Very Good
   if (score >= 670) return "#6E59A5"; // Good
   if (score >= 580) return "#ea384c"; // Fair
   return "#1A1F2C"; // Poor
@@ -227,26 +227,8 @@ const Dashboard = () => {
                     <Tooltip 
                       formatter={(value: number) => [`$${value.toFixed(2)}`, 'Amount']}
                     />
-                    <Legend />
                   </PieChart>
                 </ChartContainer>
-                <div className="mt-4 space-y-2">
-                  {spendingByCategory.map((category, index) => (
-                    <div key={category.name} className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <div
-                          className="w-3 h-3 rounded-full mr-2"
-                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                        />
-                        <span className="text-sm">{category.name}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">${category.value.toFixed(2)}</span>
-                        <span className="text-xs text-gray-500">({category.percentage}%)</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center p-8 text-center">
