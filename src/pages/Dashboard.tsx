@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
-import { Wallet, TrendingUp, PiggyBank, CreditCard, Shield, ListChecks, LogOut } from "lucide-react";
+import { Wallet, TrendingUp, PiggyBank, CreditCard, Shield, ListChecks, LogOut, ArrowUp, ArrowDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -32,25 +32,29 @@ const spendingByCategory = [
     name: "Housing", 
     value: 1200,
     description: "Rent, utilities, and home maintenance",
-    percentage: 54.5
+    percentage: 54.5,
+    change: 5.2
   },
   { 
     name: "Food", 
     value: 500,
     description: "Groceries and dining out",
-    percentage: 22.7
+    percentage: 22.7,
+    change: -3.1
   },
   { 
     name: "Transportation", 
     value: 300,
     description: "Fuel, public transit, and car maintenance",
-    percentage: 13.6
+    percentage: 13.6,
+    change: 1.8
   },
   { 
     name: "Entertainment", 
     value: 200,
     description: "Movies, events, and hobbies",
-    percentage: 9.2
+    percentage: 9.2,
+    change: -2.4
   },
 ];
 
@@ -108,7 +112,18 @@ const Dashboard = () => {
   const previousMonth = monthlyData[monthlyData.length - 2];
   
   const getChangeIndicator = (change: number) => {
-    return change > 0 ? '+' : '';
+    if (change === 0) return null;
+    return change > 0 ? (
+      <span className="flex items-center text-green-500 text-sm ml-2">
+        <ArrowUp className="w-4 h-4 mr-1" />
+        {change.toFixed(1)}%
+      </span>
+    ) : (
+      <span className="flex items-center text-red-500 text-sm ml-2">
+        <ArrowDown className="w-4 h-4 mr-1" />
+        {Math.abs(change).toFixed(1)}%
+      </span>
+    );
   };
 
   // Sort categories by value to get top spenders
