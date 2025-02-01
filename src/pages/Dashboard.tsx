@@ -1,27 +1,35 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
-import { Wallet, TrendingUp, PiggyBank, CreditCard, Shield, ListChecks, ArrowUp, ArrowDown } from "lucide-react";
+import { Wallet, TrendingUp, PiggyBank, CreditCard, Shield, ListChecks, ArrowUp, ArrowDown, Target } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useMonthlyExpenses } from "@/hooks/useExpenses";
 import { useMonthlyIncome } from "@/hooks/useIncome";
+import { useFinancialGoals } from "@/hooks/useFinancialGoals";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 const Dashboard = () => {
   const { monthlyData: expenseData, spendingByCategory } = useMonthlyExpenses();
   const { monthlyData: incomeData } = useMonthlyIncome();
-  const progress = 68;
-  const creditScore = 720;
+  const { data: goals } = useFinancialGoals();
   
   // Calculate current month totals
   const currentMonthExpense = expenseData[0]?.amount || 0;
   const currentMonthIncome = incomeData[0]?.amount || 0;
   const monthlySavings = currentMonthIncome - currentMonthExpense;
-  const totalBalance = monthlySavings; // This could be accumulated over time if needed
+
+  // Calculate total balance (sum of all income minus sum of all expenses)
+  const totalIncome = incomeData.reduce((sum, item) => sum + item.amount, 0);
+  const totalExpenses = expenseData.reduce((sum, item) => sum + item.amount, 0);
+  const totalBalance = totalIncome - totalExpenses;
   
-  // Prepare data for line chart (last 4 months)
-  const lineChartData = expenseData.slice(0, 4).map((expense, index) => {
+  // Get the primary financial goal (assuming it's the first one)
+  const primaryGoal = goals?.[0];
+  const goalProgress = primaryGoal ? (primaryGoal.current_amount / primaryGoal.target_amount) * 100 : 0;
+  
+  // Prepare data for line chart (last 6 months)
+  const lineChartData = expenseData.slice(0, 6).map((expense, index) => {
     const income = incomeData[index] || { amount: 0 };
     const balance = income.amount - expense.amount;
     return {
@@ -171,16 +179,27 @@ const Dashboard = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <PiggyBank className="w-5 h-5" />
+              <Target className="w-5 h-5" />
               Financial Goal Progress
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <Progress value={progress} className="h-2" />
-              <p className="text-sm text-muted-foreground">
-                You're {progress}% of the way to your savings goal
-              </p>
+              {primaryGoal ? (
+                <>
+                  <h3 className="font-medium">{primaryGoal.name}</h3>
+                  <Progress value={goalProgress} className="h-2" />
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>${primaryGoal.current_amount.toFixed(2)}</span>
+                    <span>${primaryGoal.target_amount.toFixed(2)}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    You're {goalProgress.toFixed(1)}% of the way to your goal
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">No financial goals set</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -189,14 +208,18 @@ const Dashboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Shield className="w-5 h-5" />
-              Credit Score
+              Financial Health Score
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">{creditScore}</div>
+              <div className="text-4xl font-bold text-primary mb-2">
+                {monthlySavings > 0 ? "Good" : "Needs Attention"}
+              </div>
               <p className="text-sm text-muted-foreground">
-                Your credit score is {creditScore >= 700 ? 'Excellent' : creditScore >= 650 ? 'Good' : 'Fair'}
+                {monthlySavings > 0
+                  ? "You're saving money this month!"
+                  : "Your expenses exceed your income this month"}
               </p>
             </div>
           </CardContent>
@@ -206,22 +229,18 @@ const Dashboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ListChecks className="w-5 h-5" />
-              Active Subscriptions
+              Recent Transactions
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {[
-                { name: "Netflix", amount: 15.99, date: "Monthly on 15th" },
-                { name: "Spotify", amount: 9.99, date: "Monthly on 1st" },
-                { name: "Gym Membership", amount: 49.99, date: "Monthly on 5th" }
-              ].map((sub, index) => (
+              {expenseData.slice(0, 3).map((expense, index) => (
                 <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-secondary/10">
                   <div>
-                    <p className="font-medium">{sub.name}</p>
-                    <p className="text-sm text-muted-foreground">{sub.date}</p>
+                    <p className="font-medium">{expense.month}</p>
+                    <p className="text-sm text-muted-foreground">Expenses</p>
                   </div>
-                  <p className="font-medium">${sub.amount}</p>
+                  <p className="font-medium text-red-500">-${expense.amount.toFixed(2)}</p>
                 </div>
               ))}
             </div>
