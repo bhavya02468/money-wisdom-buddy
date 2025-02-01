@@ -1,19 +1,49 @@
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis } from "recharts";
 import { Wallet, TrendingUp, PiggyBank, CreditCard } from "lucide-react";
+import { useEffect, useState } from "react";
 
-const data = [
-  { month: "Jan", amount: 2400 },
-  { month: "Feb", amount: 1398 },
-  { month: "Mar", amount: 9800 },
-  { month: "Apr", amount: 3908 },
-  { month: "May", amount: 4800 },
-  { month: "Jun", amount: 3800 },
-];
+interface Expense {
+  id: string;
+  description: string;
+  amount: number;
+  category: string;
+  date: string;
+}
 
 const Dashboard = () => {
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [monthlyData, setMonthlyData] = useState<{ month: string; amount: number }[]>([]);
+
+  useEffect(() => {
+    const savedExpenses = localStorage.getItem("monthlyExpenses");
+    if (savedExpenses) {
+      const parsedExpenses = JSON.parse(savedExpenses);
+      setExpenses(parsedExpenses);
+
+      // Process expenses into monthly data
+      const monthlyTotals = parsedExpenses.reduce((acc: { [key: string]: number }, expense: Expense) => {
+        const date = new Date(expense.date);
+        const monthYear = date.toLocaleString('default', { month: 'short', year: '2-digit' });
+        acc[monthYear] = (acc[monthYear] || 0) + expense.amount;
+        return acc;
+      }, {});
+
+      const chartData = Object.entries(monthlyTotals).map(([month, amount]) => ({
+        month,
+        amount,
+      }));
+
+      setMonthlyData(chartData);
+    }
+  }, []);
+
+  const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+  const monthlyIncome = 8250; // This could be made dynamic in the future
+  const totalSavings = monthlyIncome - totalExpenses;
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
@@ -25,7 +55,7 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-text-light">Total Balance</p>
-                  <p className="text-2xl font-semibold">$24,500</p>
+                  <p className="text-2xl font-semibold">${(monthlyIncome - totalExpenses).toFixed(2)}</p>
                 </div>
                 <Wallet className="w-8 h-8 text-primary" />
               </div>
@@ -37,7 +67,7 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-text-light">Monthly Income</p>
-                  <p className="text-2xl font-semibold">$8,250</p>
+                  <p className="text-2xl font-semibold">${monthlyIncome.toFixed(2)}</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-secondary" />
               </div>
@@ -49,7 +79,7 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-text-light">Total Savings</p>
-                  <p className="text-2xl font-semibold">$12,800</p>
+                  <p className="text-2xl font-semibold">${totalSavings.toFixed(2)}</p>
                 </div>
                 <PiggyBank className="w-8 h-8 text-accent" />
               </div>
@@ -61,7 +91,7 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-text-light">Total Expenses</p>
-                  <p className="text-2xl font-semibold">$3,650</p>
+                  <p className="text-2xl font-semibold">${totalExpenses.toFixed(2)}</p>
                 </div>
                 <CreditCard className="w-8 h-8 text-red-500" />
               </div>
@@ -76,7 +106,7 @@ const Dashboard = () => {
           <CardContent>
             <div className="h-[300px]">
               <ChartContainer config={{ amount: { color: "#0066CC" } }}>
-                <BarChart data={data}>
+                <BarChart data={monthlyData}>
                   <XAxis dataKey="month" />
                   <YAxis />
                   <ChartTooltip />
