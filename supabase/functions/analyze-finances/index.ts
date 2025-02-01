@@ -8,60 +8,69 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { userId } = await req.json();
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY')!;
+    
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
 
-    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+
+    if (!supabaseUrl || !supabaseServiceKey || !openAIApiKey) {
+      throw new Error('Missing required environment variables');
+    }
+
+    console.log('Initializing Supabase client...');
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Fetch user's financial data
-    const { data: expenses } = await supabase
-      .from('expenses')
-      .select('*')
-      .eq('user_id', userId);
+    console.log('Fetching user financial data...');
+    const [expensesResponse, incomeResponse, goalsResponse] = await Promise.all([
+      supabase.from('expenses').select('*').eq('user_id', userId),
+      supabase.from('income').select('*').eq('user_id', userId),
+      supabase.from('financial_goals').select('*').eq('user_id', userId)
+    ]);
 
-    const { data: income } = await supabase
-      .from('income')
-      .select('*')
-      .eq('user_id', userId);
+    if (expensesResponse.error) throw expensesResponse.error;
+    if (incomeResponse.error) throw incomeResponse.error;
+    if (goalsResponse.error) throw goalsResponse.error;
 
-    const { data: goals } = await supabase
-      .from('financial_goals')
-      .select('*')
-      .eq('user_id', userId);
+    const expenses = expensesResponse.data || [];
+    const income = incomeResponse.data || [];
+    const goals = goalsResponse.data || [];
 
     // Calculate key metrics
-    const totalExpenses = expenses?.reduce((sum, exp) => sum + Number(exp.amount), 0) || 0;
-    const totalIncome = income?.reduce((sum, inc) => sum + Number(inc.amount), 0) || 0;
-    const savingsRate = ((totalIncome - totalExpenses) / totalIncome) * 100;
+    const totalExpenses = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
+    const totalIncome = income.reduce((sum, inc) => sum + Number(inc.amount), 0);
+    const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
     
     // Group expenses by category
-    const expensesByCategory = expenses?.reduce((acc, exp) => {
+    const expensesByCategory = expenses.reduce((acc, exp) => {
       acc[exp.category] = (acc[exp.category] || 0) + Number(exp.amount);
       return acc;
     }, {} as Record<string, number>);
 
-    // Prepare the analysis prompt
+    console.log('Preparing analysis prompt...');
     const analysisPrompt = `
       As a financial advisor, analyze this user's financial data:
       - Monthly Income: $${totalIncome}
       - Monthly Expenses: $${totalExpenses}
       - Savings Rate: ${savingsRate.toFixed(1)}%
       - Expense Categories: ${JSON.stringify(expensesByCategory)}
-      - Financial Goals: ${goals?.map(g => `${g.name}: $${g.target_amount}`).join(', ')}
+      - Financial Goals: ${goals.map(g => `${g.name}: $${g.target_amount}`).join(', ')}
 
       Based on this data, provide 2-3 specific, actionable suggestions to help them save money and achieve their financial goals. 
       Keep the response concise and practical. Focus on their highest expenses and areas with the most potential for savings.
     `;
 
-    // Get AI suggestions
+    console.log('Calling OpenAI API...');
     const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -69,7 +78,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4',
         messages: [
           {
             role: 'system',
@@ -84,20 +93,38 @@ serve(async (req) => {
       }),
     });
 
+    if (!aiResponse.ok) {
+      const errorData = await aiResponse.json();
+      console.error('OpenAI API error:', errorData);
+      throw new Error('Failed to get AI suggestions');
+    }
+
     const aiData = await aiResponse.json();
     const suggestions = aiData.choices[0].message.content;
 
+    console.log('Successfully generated suggestions');
     return new Response(
       JSON.stringify({ suggestions }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        } 
+      }
     );
   } catch (error) {
     console.error('Error in analyze-finances function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: error.stack
+      }),
       { 
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        }
       }
     );
   }
