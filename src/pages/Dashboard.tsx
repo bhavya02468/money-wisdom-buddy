@@ -1,5 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 import {
   LineChart,
   Line,
@@ -19,12 +21,15 @@ import {
   Target,
   ArrowUp,
   ArrowDown,
-  Lightbulb // Newly imported for AI Insights
+  Lightbulb
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useExpenses, useMonthlyExpenses } from "@/hooks/useExpenses";
 import { useMonthlyIncome } from "@/hooks/useIncome";
 import { useFinancialGoals } from "@/hooks/useFinancialGoals";
+import { useEffect, useState, useRef } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { RecurringExpenses } from "@/components/RecurringExpenses";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
@@ -45,9 +50,14 @@ const getCreditScoreText = (score: number) => {
 };
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { data: expenses } = useExpenses();
   const { monthlyData: expenseData, spendingByCategory } = useMonthlyExpenses();
   const { monthlyData: incomeData } = useMonthlyIncome();
   const { data: goals } = useFinancialGoals();
+  const [aiInsights, setAiInsights] = useState<string>("");
+  const insightsGeneratedRef = useRef(false);
 
   // Calculate current month totals
   const currentMonthExpense = expenseData[0]?.amount || 0;
@@ -70,8 +80,6 @@ const Dashboard = () => {
     </div>
   );
 
-  const { data: expenses } = useExpenses();
-  
   // Filter for last month's recurring expenses
   const currentDate = new Date();
   const lastMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1);
@@ -118,6 +126,67 @@ const Dashboard = () => {
   const creditScore = 750;
   const creditScoreColor = getCreditScoreColor(creditScore);
   const creditScoreText = getCreditScoreText(creditScore);
+
+  // Add effect to fetch AI insights with user ID only once
+  useEffect(() => {
+    const getAiInsights = async () => {
+      if (insightsGeneratedRef.current) return;
+
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          console.error('No authenticated user found');
+          toast({
+            title: "Error",
+            description: "Please log in to view insights",
+            variant: "destructive",
+          });
+          navigate("/login");
+          return;
+        }
+
+        const { data, error } = await supabase.functions.invoke('analyze-finances', {
+          body: { 
+            type: 'insights',
+            userId: user.id,
+            expenses: expenses || [],
+            income: incomeData || [],
+            goals: goals || []
+          },
+        });
+
+        if (error) {
+          toast({
+            title: "Error",
+            description: "Failed to fetch insights",
+            variant: "destructive",
+          });
+          throw error;
+        }
+        
+        if (data?.suggestions) {
+          setAiInsights(data.suggestions);
+          insightsGeneratedRef.current = true;
+          toast({
+            title: "Success",
+            description: "Financial insights updated",
+          });
+        }
+      } catch (error) {
+        console.error('Error getting AI insights:', error);
+        toast({
+          title: "Error",
+          description: "Failed to analyze finances",
+          variant: "destructive",
+        });
+      }
+    };
+
+    if (expenses || incomeData || goals) {
+      getAiInsights();
+    }
+  }, [expenses, incomeData, goals, toast, navigate]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -261,29 +330,7 @@ const Dashboard = () => {
 
       {/* Bottom cards: Financial Goal Progress, Financial Health Score, Recurring Expenses, and AI Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Recurring Expenses</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recurringExpenses.map((expense) => (
-                <div
-                  key={expense.id}
-                  className="flex items-center justify-between p-2 rounded-lg bg-secondary/10"
-                >
-                  <div>
-                    <p className="font-medium">{expense.description}</p>
-                    <p className="text-sm text-muted-foreground">{expense.category}</p>
-                  </div>
-                  <p className="font-medium text-red-500">
-                    -${expense.amount.toFixed(2)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <RecurringExpenses />
 
         <Card>
           <CardHeader>
