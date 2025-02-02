@@ -23,9 +23,18 @@ export const StockInsights = ({ stocks }: StockInsightsProps) => {
       if (insightsGeneratedRef.current) return;
 
       try {
+        // First get the current user
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          console.error('No authenticated user found');
+          return;
+        }
+
         const { data, error } = await supabase.functions.invoke('analyze-finances', {
           body: { 
             type: 'stocks',
+            userId: user.id,  // Add the user ID to the request
             stocks: stocks.map(stock => ({
               symbol: stock.symbol,
               currentPrice: stock.currentPrice,
