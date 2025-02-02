@@ -15,7 +15,7 @@ serve(async (req) => {
   }
 
   try {
-    const { type, userId, stocks, expenses, income, goals } = await req.json()
+    const { type, userId, stocks, expenses, income, goals, message } = await req.json()
 
     if (!userId) {
       return new Response(
@@ -37,33 +37,49 @@ serve(async (req) => {
     const openai = new OpenAIApi(configuration)
 
     let prompt = ''
+    let response
+
+    if (type === 'chat') {
+      prompt = `As a financial advisor, please respond to this user query: ${message}
+
+      Keep the response concise and practical, with a focus on Montreal-specific advice where relevant.`
+
+      response = await openai.createChatCompletion({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.7,
+        max_tokens: 500,
+      })
+
+      return new Response(
+        JSON.stringify({ response: response.data.choices[0]?.message?.content }),
+        { 
+          headers: { 
+            ...corsHeaders,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+    }
     
     if (type === 'stocks') {
-      // Prepare stock data for analysis
-      const stocksData = stocks.map(stock => 
-        `${stock.symbol}: Current Price $${stock.currentPrice}, Purchase Price $${stock.purchasePrice}, Change ${stock.change}%`
-      ).join('\n')
-
-      prompt = `As a financial advisor, analyze these stock investments and provide actionable suggestions:
-
-      Stock Portfolio:
-      ${stocksData}
+      prompt = `As a financial advisor, analyze the current market conditions and provide actionable suggestions.
 
       Please provide 3 specific, actionable suggestions about:
-      1. Which stocks are performing well and why
-      2. Which stocks might need attention
-      3. Potential opportunities or risks to watch for
+      1. Current market trends and opportunities
+      2. Risk management strategies
+      3. Potential sectors to watch
 
       Keep the response concise and practical, with a focus on Montreal-specific market context where relevant.`
-    } else {
+    } else if (type === 'insights') {
       // Prepare financial data for analysis
-      const totalExpenses = expenses?.reduce((sum, exp) => sum + exp.amount, 0) || 0
-      const totalIncome = income?.reduce((sum, inc) => sum + inc.amount, 0) || 0
+      const totalExpenses = expenses?.reduce((sum: number, exp: { amount: number }) => sum + exp.amount, 0) || 0
+      const totalIncome = income?.reduce((sum: number, inc: { amount: number }) => sum + inc.amount, 0) || 0
       const savings = totalIncome - totalExpenses
       const savingsRate = totalIncome > 0 ? (savings / totalIncome) * 100 : 0
 
       // Group expenses by category
-      const expensesByCategory = expenses?.reduce((acc, exp) => {
+      const expensesByCategory = expenses?.reduce((acc: { [key: string]: number }, exp: { category: string, amount: number }) => {
         acc[exp.category] = (acc[exp.category] || 0) + exp.amount
         return acc
       }, {}) || {}
