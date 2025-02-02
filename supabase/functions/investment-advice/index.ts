@@ -31,7 +31,7 @@ Format your response in this structure:
 5. Key Risks to Consider
 6. Additional Recommendations
 
-Keep the response professional but easy to understand. Focus on current market conditions and practical next steps.`;
+Keep the response professional but easy to understand. Focus on current market conditions and practical next steps. Do not use markdown symbols like * or # in your response.`;
     } else {
       prompt = `As a financial advisor, provide a detailed ${riskLevel} investment recommendation for a ${investmentType} investment of $${amount} (which is ${((amount/totalBalance)*100).toFixed(1)}% of their total balance of $${totalBalance}). 
 
@@ -43,7 +43,7 @@ Format your response in this structure:
 5. Timeline Considerations
 6. Additional Tips
 
-Keep the response professional but easy to understand. Focus on practical next steps.`;
+Keep the response professional but easy to understand. Focus on practical next steps. Do not use markdown symbols like * or # in your response.`;
     }
 
     console.log('Generating investment advice with prompt:', prompt);
@@ -59,7 +59,7 @@ Keep the response professional but easy to understand. Focus on practical next s
         messages: [
           {
             role: 'system',
-            content: 'You are a knowledgeable financial advisor providing investment recommendations. Be clear, concise, and always consider both risk and potential returns in your advice. Format your responses in a structured, easy-to-read way.',
+            content: 'You are a knowledgeable financial advisor providing investment recommendations. Be clear, concise, and always consider both risk and potential returns in your advice. Format your responses in a structured, easy-to-read way without using markdown symbols.',
           },
           { role: 'user', content: prompt }
         ],

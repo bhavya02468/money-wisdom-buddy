@@ -40,6 +40,10 @@ export default {
           DEFAULT: "#1E293B",
           light: "#64748B",
         },
+        popover: {
+          DEFAULT: "hsl(0 0% 100%)",
+          foreground: "hsl(222.2 84% 4.9%)",
+        },
       },
       animation: {
         "fade-in": "fadeIn 0.5s ease-in-out",
