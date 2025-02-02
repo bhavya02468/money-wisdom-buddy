@@ -5,21 +5,21 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useExpenses } from "@/hooks/useExpenses";
-import { useIncome } from "@/hooks/useIncome";
+import { useMonthlyIncome } from "@/hooks/useIncome";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
 const InvestmentRecommender = () => {
   const { toast } = useToast();
   const { data: expenses } = useExpenses();
-  const { monthlyData: incomeData } = useIncome();
+  const { monthlyData } = useMonthlyIncome();
   const [loading, setLoading] = useState(false);
   const [investmentType, setInvestmentType] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
   const [recommendation, setRecommendation] = useState<string>("");
 
   // Calculate total balance (income - expenses)
-  const totalIncome = incomeData?.reduce((sum, item) => sum + item.amount, 0) || 0;
+  const totalIncome = monthlyData?.reduce((sum, item) => sum + item.amount, 0) || 0;
   const totalExpenses = expenses?.reduce((sum, item) => sum + item.amount, 0) || 0;
   const totalBalance = totalIncome - totalExpenses;
   const suggestedAmount = Math.max(0, totalBalance / 2);
