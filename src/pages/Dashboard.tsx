@@ -340,12 +340,15 @@ const Dashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p>Based on your spending patterns, here are some suggestions for improving your financial well-being:</p>
-            <ul className="list-disc pl-5 mt-2">
-              <li>Review your recurring expenses for potential savings opportunities.</li>
-              <li>Consider automating your savings to better achieve your financial goals.</li>
-              <li>Maintain your good credit score by making timely payments.</li>
-            </ul>
+            {aiInsights ? (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">{aiInsights}</p>
+              </div>
+            ) : (
+              <div className="text-center text-muted-foreground">
+                Generating insights...
+              </div>
+            )}
           </CardContent>
         </Card>
 
