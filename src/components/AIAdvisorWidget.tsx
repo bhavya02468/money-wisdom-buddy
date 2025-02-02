@@ -70,7 +70,7 @@ export const AIAdvisorWidget = () => {
   return (
     <div className="fixed bottom-4 right-4 z-50">
       {isOpen ? (
-        <Card className="w-80 p-4 shadow-lg">
+        <Card className="w-80 p-4 shadow-lg bg-background border">
           <div className="flex justify-between items-start mb-4">
             <div className="flex items-center gap-2">
               <img
@@ -89,7 +89,7 @@ export const AIAdvisorWidget = () => {
               <X className="h-4 w-4" />
             </Button>
           </div>
-          <div className="space-y-4 h-[300px] overflow-y-auto mb-4">
+          <div className="space-y-4 h-[300px] overflow-y-auto mb-4 bg-background">
             {chatHistory.map((msg, index) => (
               <div
                 key={index}
@@ -100,8 +100,8 @@ export const AIAdvisorWidget = () => {
                 <div
                   className={`max-w-[80%] p-3 rounded-lg ${
                     msg.type === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted"
+                      ? "bg-primary text-white"
+                      : "bg-gray-100 text-gray-900"
                   }`}
                 >
                   {msg.content}
