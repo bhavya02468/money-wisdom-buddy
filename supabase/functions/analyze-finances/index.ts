@@ -22,11 +22,11 @@ serve(async (req) => {
         const changePercent = ((stock.currentPrice - stock.purchasePrice) / stock.purchasePrice) * 100;
         
         if (changePercent <= -5) {
-          suggestions += `${stock.symbol}: Consider buying more to average down. The current dip might be a good opportunity.\n`;
+          suggestions += `${stock.symbol}: Consider buying more to average down.\n`;
         } else if (changePercent >= 10) {
-          suggestions += `${stock.symbol}: Consider taking some profits. The stock has performed well.\n`;
+          suggestions += `${stock.symbol}: Consider taking profits.\n`;
         } else {
-          suggestions += `${stock.symbol}: Hold position. The stock is showing stable performance.\n`;
+          suggestions += `${stock.symbol}: Hold position.\n`;
         }
       }
 
@@ -48,10 +48,8 @@ serve(async (req) => {
       throw new Error('Missing required environment variables');
     }
 
-    console.log('Initializing Supabase client...');
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    console.log('Fetching user financial data...');
     const [expensesResponse, incomeResponse, goalsResponse] = await Promise.all([
       supabase.from('expenses').select('*').eq('user_id', userId),
       supabase.from('income').select('*').eq('user_id', userId),
@@ -75,25 +73,23 @@ serve(async (req) => {
       return acc;
     }, {} as Record<string, number>);
 
-    console.log('Preparing Montreal-specific analysis prompt...');
     const analysisPrompt = `
-      As a financial advisor familiar with Montreal downtown, analyze this data:
+      As a financial advisor, analyze this data concisely (max 80 words):
       - Monthly Income: $${totalIncome}
       - Monthly Expenses: $${totalExpenses}
       - Savings Rate: ${savingsRate.toFixed(1)}%
       - Expense Categories: ${JSON.stringify(expensesByCategory)}
       - Financial Goals: ${goals.map(g => `${g.name}: $${g.target_amount}`).join(', ')}
 
-      Provide ONE specific, actionable suggestion (max 80 words) focusing on:
-      1. Montreal-specific savings opportunities (e.g., STM OPUS card deals, student discounts)
-      2. Local subscription alternatives (e.g., independent gym deals vs. chain gyms)
-      3. Downtown Montreal budget tips (e.g., affordable lunch spots, happy hour deals)
-      4. Seasonal money-saving opportunities in Montreal
+      Provide ONE specific, actionable suggestion focusing on:
+      1. Savings opportunities
+      2. Budget optimization
+      3. Goal achievement strategies
+      4. Spending patterns
 
-      Keep the response very concise and practical, focusing on unique Montreal downtown opportunities.
+      Keep the response very concise and practical.
     `;
 
-    console.log('Calling OpenAI API...');
     const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -105,7 +101,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful financial advisor based in Montreal downtown. Provide specific, actionable advice based on real financial data and local opportunities.'
+            content: 'You are a helpful financial advisor. Provide specific, actionable advice based on real financial data. Keep responses under 80 words.'
           },
           {
             role: 'user',
@@ -126,7 +122,6 @@ serve(async (req) => {
     const aiData = await aiResponse.json();
     const suggestions = aiData.choices[0].message.content;
 
-    console.log('Successfully generated Montreal-specific suggestions');
     return new Response(
       JSON.stringify({ suggestions }),
       { 

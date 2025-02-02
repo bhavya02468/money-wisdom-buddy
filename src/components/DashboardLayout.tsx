@@ -18,7 +18,8 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
+    // Clear all localStorage items
+    localStorage.clear();
     navigate("/");
   };
 
