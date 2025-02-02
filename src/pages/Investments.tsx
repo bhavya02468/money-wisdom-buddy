@@ -15,12 +15,12 @@ const Investments = () => {
       name: "Air Canada",
       shares: 10,
       purchasePrice: 19.00,
-      currentPrice: 19.02,
-      change: 0.48,
-      changeAmount: 0.09,
+      currentPrice: 25.02,
+      change: 31.68,
+      changeAmount: 6.02,
       data: Array.from({ length: 30 }, (_, i) => ({
         day: i + 1,
-        price: 19 + Math.sin(i * 0.3) * 0.5
+        price: 19 + Math.sin(i * 0.4) * 8 + (i * 0.2) // Dramatic upward trend
       }))
     },
     {
@@ -28,12 +28,12 @@ const Investments = () => {
       name: "Toronto-Dominion Bank",
       shares: 15,
       purchasePrice: 82.50,
-      currentPrice: 80.25,
-      change: -2.73,
-      changeAmount: -2.25,
+      currentPrice: 65.25,
+      change: -20.91,
+      changeAmount: -17.25,
       data: Array.from({ length: 30 }, (_, i) => ({
         day: i + 1,
-        price: 82.5 - Math.sin(i * 0.3) * 2.5
+        price: 82.5 - Math.sin(i * 0.3) * 10 - (i * 0.3) // Dramatic downward trend
       }))
     },
     {
@@ -41,12 +41,12 @@ const Investments = () => {
       name: "Canadian National Railway",
       shares: 8,
       purchasePrice: 156.75,
-      currentPrice: 159.30,
-      change: 1.63,
-      changeAmount: 2.55,
+      currentPrice: 189.30,
+      change: 20.77,
+      changeAmount: 32.55,
       data: Array.from({ length: 30 }, (_, i) => ({
         day: i + 1,
-        price: 156.75 + Math.sin(i * 0.3) * 3
+        price: 156.75 + Math.cos(i * 0.2) * 15 + (i * 0.8) // Strong upward trend
       }))
     },
     {
@@ -54,32 +54,31 @@ const Investments = () => {
       name: "BCE Inc.",
       shares: 25,
       purchasePrice: 54.20,
-      currentPrice: 52.85,
-      change: -2.49,
-      changeAmount: -1.35,
+      currentPrice: 42.85,
+      change: -20.94,
+      changeAmount: -11.35,
       data: Array.from({ length: 30 }, (_, i) => ({
         day: i + 1,
-        price: 54.20 - Math.cos(i * 0.3) * 1.5
+        price: 54.20 - Math.cos(i * 0.4) * 8 - (i * 0.25) // Significant decline
       }))
     }
   ];
 
-  // Calculate portfolio total value over time
+  // Calculate cumulative portfolio value over time
   const portfolioData = useMemo(() => {
-    const data = Array.from({ length: 30 }, (_, i) => ({
-      day: i + 1,
-      total: 0,
-      ...stockInvestments.reduce((acc, stock) => ({
-        ...acc,
-        [stock.symbol]: stock.data[i].price * stock.shares
-      }), {})
-    }));
+    return Array.from({ length: 30 }, (_, i) => {
+      const dayData = {
+        day: i + 1,
+        total: 0
+      };
+      
+      // Calculate cumulative value for this day
+      stockInvestments.forEach(stock => {
+        dayData.total += stock.data[i].price * stock.shares;
+      });
 
-    // Calculate total for each day
-    return data.map(day => ({
-      ...day,
-      total: stockInvestments.reduce((sum, stock) => sum + (day[stock.symbol] || 0), 0)
-    }));
+      return dayData;
+    });
   }, [stockInvestments]);
 
   // Calculate total portfolio value and change
@@ -157,23 +156,12 @@ const Investments = () => {
                 <XAxis dataKey="day" />
                 <YAxis />
                 <Tooltip 
-                  formatter={(value: number) => [`$${value.toFixed(2)} CAD`, 'Value']}
+                  formatter={(value: number) => [`$${value.toFixed(2)} CAD`, 'Portfolio Value']}
                 />
-                <Legend />
-                {stockInvestments.map((stock) => (
-                  <Line
-                    key={stock.symbol}
-                    type="monotone"
-                    dataKey={stock.symbol}
-                    name={`${stock.symbol} (${stock.name})`}
-                    stroke={stock.change >= 0 ? "#22c55e" : "#ef4444"}
-                    dot={false}
-                  />
-                ))}
                 <Line
                   type="monotone"
                   dataKey="total"
-                  name="Total Portfolio"
+                  name="Total Portfolio Value"
                   stroke="#0066CC"
                   strokeWidth={2}
                   dot={false}
@@ -188,7 +176,7 @@ const Investments = () => {
       <Card>
         <CardHeader className="flex flex-row items-center space-x-4">
           <LineChart className="w-8 h-8 text-primary" />
-          <CardTitle>Stocks</CardTitle>
+          <CardTitle>Individual Stocks</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
@@ -234,7 +222,7 @@ const Investments = () => {
                         <ArrowDown className="w-4 h-4 text-red-500" />
                       )}
                       <span className={stock.change >= 0 ? "text-green-500" : "text-red-500"}>
-                        {stock.changeAmount} ({stock.change}%)
+                        {stock.changeAmount} ({stock.change.toFixed(2)}%)
                       </span>
                     </div>
                   </div>
