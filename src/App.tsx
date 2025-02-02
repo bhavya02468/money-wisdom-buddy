@@ -11,7 +11,7 @@ import Chat from "./pages/Chat";
 import Dashboard from "./pages/Dashboard";
 import AddExpense from "./pages/AddExpense";
 import AddIncome from "./pages/AddIncome";
-import InvestmentRecommender from "./pages/InvestmentRecommender";
+import InvestmentRecommender from "./pages/AddInvestment";
 import Investments from "./pages/Investments";
 import NotFound from "./pages/NotFound";
 import Layout from "./components/Layout";

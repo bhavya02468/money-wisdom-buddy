@@ -13,19 +13,13 @@ import {
 } from "@/components/ui/sidebar";
 import { LineChart, LogOut, PlusCircle, Target, Building2, Coins } from "lucide-react";
 import { AIAdvisorWidget } from "./AIAdvisorWidget";
-import { supabase } from "@/integrations/supabase/client";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      localStorage.clear(); // Clear all localStorage items
-      navigate("/");
-    } catch (error) {
-      console.error("Error during logout:", error);
-    }
+  const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn");
+    navigate("/");
   };
 
   return (
