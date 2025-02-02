@@ -109,14 +109,15 @@ const FinancialGoals = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 space-y-8 bg-gradient-to-br from-background to-surface">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Financial Goals</h1>
+        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+          Financial Goals
+        </h1>
       </div>
 
-      {/* Flex container: stacks on small screens; two columns on large screens */}
+
       <div className="flex flex-col lg:flex-row gap-8">
-        {/* Left Column: Add New Goal */}
         <div className="lg:w-1/2">
           <Card>
             <CardHeader>

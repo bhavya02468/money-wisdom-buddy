@@ -87,7 +87,13 @@ const InvestmentRecommender = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 space-y-8 bg-gradient-to-br from-background to-surface">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+        Investment Recommender
+        </h1>
+      </div>
+
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle>Investment Recommender</CardTitle>
