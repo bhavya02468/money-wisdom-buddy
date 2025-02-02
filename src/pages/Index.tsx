@@ -114,7 +114,6 @@ const Index = () => {
                 </span>
               </div>
               <p className="text-2xl font-bold text-text">{stock.price}</p>
-              <div className="mt-4 h-16 bg-gradient-to-r from-green-100 to-green-50 rounded-lg" />
             </Card>
           ))}
         </div>
