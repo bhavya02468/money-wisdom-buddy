@@ -20,44 +20,12 @@ export const AIAdvisorWidget = () => {
     },
   ]);
 
-  // Function to get financial suggestions - only runs when chat is opened
-  const getFinancialSuggestions = async () => {
-    if (!isOpen) return;
-    
-    try {
-      const user = await supabase.auth.getUser();
-      if (!user.data.user) return;
-
-      const { data, error } = await supabase.functions.invoke('analyze-finances', {
-        body: { userId: user.data.user.id },
-      });
-
-      if (error) throw error;
-
-      if (data.suggestions) {
-        setChatHistory(prev => [...prev, {
-          type: "assistant",
-          content: data.suggestions
-        }]);
-      }
-    } catch (error) {
-      console.error('Error getting financial suggestions:', error);
-    }
-  };
-
-  // Auto-open chat with stock analysis on investments page
+  // Auto-open chat on investments page
   useEffect(() => {
     if (location.pathname === '/investments' && !isOpen) {
       setIsOpen(true);
     }
   }, [location.pathname]);
-
-  // Only fetch suggestions when chat is opened
-  useEffect(() => {
-    if (isOpen) {
-      getFinancialSuggestions();
-    }
-  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
