@@ -9,6 +9,7 @@ import {
   Pie,
   Cell,
   Tooltip,
+  Legend,
 } from "recharts";
 import {
   Wallet,
@@ -19,14 +20,21 @@ import {
   Target,
   ArrowUp,
   ArrowDown,
+<<<<<<< HEAD
   Lightbulb
+=======
+>>>>>>> parent of 385fed0 (Dasboard Updates)
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { useExpenses, useMonthlyExpenses } from "@/hooks/useExpenses";
+import { useMonthlyExpenses } from "@/hooks/useExpenses";
 import { useMonthlyIncome } from "@/hooks/useIncome";
 import { useFinancialGoals } from "@/hooks/useFinancialGoals";
+<<<<<<< HEAD
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+=======
+import { RecurringExpenses } from "@/components/RecurringExpenses";
+>>>>>>> parent of 385fed0 (Dasboard Updates)
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
@@ -73,19 +81,6 @@ const Dashboard = () => {
       <p className="text-sm text-gray-400">Start by adding some income or expenses</p>
     </div>
   );
-
-  const { data: expenses } = useExpenses();
-  
-  // Filter for last month's recurring expenses
-  const currentDate = new Date();
-  const lastMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1);
-  
-  const recurringExpenses = expenses?.filter((expense) => {
-    const expenseDate = new Date(expense.date);
-    return expense.is_recurring && 
-           expenseDate.getMonth() === lastMonth.getMonth() &&
-           expenseDate.getFullYear() === lastMonth.getFullYear();
-  }) || [];
   
   // Prepare data for line chart (last 6 months)
   const lineChartData = expenseData.slice(0, 6).map((expense, index) => {
@@ -97,11 +92,6 @@ const Dashboard = () => {
       balance: balance
     };
   });
-
-  const previousMonthBalance = lineChartData[1]?.balance;
-  const balanceChange = previousMonthBalance
-    ? ((totalBalance - previousMonthBalance) / previousMonthBalance) * 100
-    : 0;
 
   const getChangeIndicator = (change: number) => {
     if (change === 0) return null;
@@ -168,7 +158,6 @@ const Dashboard = () => {
         <h1 className="text-3xl font-bold">Financial Dashboard</h1>
       </div>
 
-      {/* Top summary cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card className="hover:shadow-lg transition-shadow">
           <CardContent className="p-6">
@@ -177,7 +166,7 @@ const Dashboard = () => {
                 <p className="text-sm text-text-light">Total Balance</p>
                 <p className="text-2xl font-semibold">
                   ${totalBalance.toFixed(2)}
-                  {getChangeIndicator(balanceChange)}
+                  {getChangeIndicator(expenseData[0]?.change || 0)}
                 </p>
               </div>
               <Wallet className="w-8 h-8 text-primary" />
@@ -231,7 +220,6 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <Card>
           <CardHeader>
@@ -302,10 +290,10 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Bottom cards: Financial Goal Progress, Financial Health Score, Recurring Expenses, and AI Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
+<<<<<<< HEAD
             <CardTitle>Recurring Expenses</CardTitle>
           </CardHeader>
           <CardContent>
@@ -361,6 +349,8 @@ const Dashboard = () => {
 
         <Card>
           <CardHeader>
+=======
+>>>>>>> parent of 385fed0 (Dasboard Updates)
             <CardTitle className="flex items-center gap-2">
               <Target className="w-5 h-5" />
               Financial Goal Progress
@@ -405,6 +395,10 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
+
+        <div className="lg:col-span-2">
+          <RecurringExpenses />
+        </div>
       </div>
     </div>
   );
