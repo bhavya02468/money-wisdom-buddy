@@ -136,7 +136,7 @@ const App = () => (
             }
           />
           <Route
-            path="/add-investment"
+            path="/investment-recommender"
             element={
               <PrivateRoute>
                 <InvestmentRecommender />

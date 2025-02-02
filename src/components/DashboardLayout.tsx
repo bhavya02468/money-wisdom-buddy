@@ -18,7 +18,6 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // Clear all localStorage items
     localStorage.clear();
     navigate("/");
   };
@@ -77,7 +76,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton onClick={() => navigate("/add-investment")}>
+                    <SidebarMenuButton onClick={() => navigate("/investment-recommender")}>
                       <Coins />
                       <span>Investment Recommender</span>
                     </SidebarMenuButton>
