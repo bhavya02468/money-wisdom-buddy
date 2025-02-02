@@ -19,12 +19,17 @@ import {
   Target,
   ArrowUp,
   ArrowDown,
-  Lightbulb // Newly imported for AI Insights
+  Lightbulb
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { useExpenses, useMonthlyExpenses } from "@/hooks/useExpenses";
+import { useMonthlyExpenses } from "@/hooks/useExpenses";
 import { useMonthlyIncome } from "@/hooks/useIncome";
 import { useFinancialGoals } from "@/hooks/useFinancialGoals";
+import { useEffect, useState, useRef } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { RecurringExpenses } from "@/components/RecurringExpenses";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
@@ -48,6 +53,10 @@ const Dashboard = () => {
   const { monthlyData: expenseData, spendingByCategory } = useMonthlyExpenses();
   const { monthlyData: incomeData } = useMonthlyIncome();
   const { data: goals } = useFinancialGoals();
+  const [aiInsights, setAiInsights] = useState<string>("");
+  const insightsGeneratedRef = useRef(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   // Calculate current month totals
   const currentMonthExpense = expenseData[0]?.amount || 0;
@@ -70,54 +79,68 @@ const Dashboard = () => {
     </div>
   );
 
-  const { data: expenses } = useExpenses();
-  
-  // Filter for last month's recurring expenses
-  const currentDate = new Date();
-  const lastMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1);
-  
-  const recurringExpenses = expenses?.filter((expense) => {
-    const expenseDate = new Date(expense.date);
-    return expense.is_recurring && 
-           expenseDate.getMonth() === lastMonth.getMonth() &&
-           expenseDate.getFullYear() === lastMonth.getFullYear();
-  }) || [];
-  
-  // Prepare data for line chart (last 6 months)
-  const lineChartData = expenseData.slice(0, 6).map((expense, index) => {
-    const income = incomeData[index] || { amount: 0 };
-    const balance = income.amount - expense.amount;
-    return {
-      month: expense.month,
-      expense: expense.amount,
-      balance: balance
+  // Updated effect to handle authentication and data fetching
+  useEffect(() => {
+    const getAiInsights = async () => {
+      if (insightsGeneratedRef.current) return;
+
+      try {
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError) {
+          console.error('Auth error:', userError);
+          toast({
+            title: "Authentication Error",
+            description: "Please try logging in again",
+            variant: "destructive"
+          });
+          navigate("/auth");
+          return;
+        }
+
+        if (!user) {
+          console.error('No authenticated user found');
+          navigate("/auth");
+          return;
+        }
+
+        const { data, error } = await supabase.functions.invoke('analyze-finances', {
+          body: { 
+            userId: user.id,
+            expenses: expenseData || [],
+            income: incomeData || [],
+            goals: goals || []
+          },
+        });
+
+        if (error) {
+          console.error('Edge function error:', error);
+          toast({
+            title: "Error",
+            description: "Could not fetch financial insights",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        if (data?.suggestions) {
+          setAiInsights(data.suggestions);
+          insightsGeneratedRef.current = true;
+        }
+      } catch (error) {
+        console.error('Error getting AI insights:', error);
+        toast({
+          title: "Error",
+          description: "Could not fetch financial insights",
+          variant: "destructive"
+        });
+      }
     };
-  });
 
-  const previousMonthBalance = lineChartData[1]?.balance;
-  const balanceChange = previousMonthBalance
-    ? ((totalBalance - previousMonthBalance) / previousMonthBalance) * 100
-    : 0;
-
-  const getChangeIndicator = (change: number) => {
-    if (change === 0) return null;
-    return change > 0 ? (
-      <span className="flex items-center text-green-500 text-sm ml-2">
-        <ArrowUp className="w-4 h-4 mr-1" />
-        {change.toFixed(1)}%
-      </span>
-    ) : (
-      <span className="flex items-center text-red-500 text-sm ml-2">
-        <ArrowDown className="w-4 h-4 mr-1" />
-        {Math.abs(change).toFixed(1)}%
-      </span>
-    );
-  };
-
-  // Hardcoded credit score for demo (you can replace this with real data later)
-  const creditScore = 750;
-  const creditScoreColor = getCreditScoreColor(creditScore);
-  const creditScoreText = getCreditScoreText(creditScore);
+    if (expenseData || incomeData || goals) {
+      getAiInsights();
+    }
+  }, [expenseData, incomeData, goals, navigate, toast]);
 
   return (
     <div className="container mx-auto px-4 py-8">
