@@ -342,7 +342,9 @@ const Dashboard = () => {
           <CardContent>
             {aiInsights ? (
               <div className="space-y-4">
-                <p className="text-sm text-muted-foreground">{aiInsights}</p>
+                <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-line">
+                  {aiInsights}
+                </p>
               </div>
             ) : (
               <div className="text-center text-muted-foreground">
