@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, ArrowUp, ArrowDown } from "lucide-react";
-import { LineChart as RechartsLineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { useEffect } from "react";
+import { LineChart as RechartsLineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { useEffect, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { InvestmentAdvisor } from "@/components/InvestmentAdvisor";
@@ -64,6 +64,37 @@ const Investments = () => {
     }
   ];
 
+  // Calculate portfolio total value over time
+  const portfolioData = useMemo(() => {
+    const data = Array.from({ length: 30 }, (_, i) => ({
+      day: i + 1,
+      total: 0,
+      ...stockInvestments.reduce((acc, stock) => ({
+        ...acc,
+        [stock.symbol]: stock.data[i].price * stock.shares
+      }), {})
+    }));
+
+    // Calculate total for each day
+    return data.map(day => ({
+      ...day,
+      total: stockInvestments.reduce((sum, stock) => sum + (day[stock.symbol] || 0), 0)
+    }));
+  }, [stockInvestments]);
+
+  // Calculate total portfolio value and change
+  const totalPortfolioValue = stockInvestments.reduce(
+    (sum, stock) => sum + (stock.currentPrice * stock.shares),
+    0
+  );
+
+  const initialPortfolioValue = stockInvestments.reduce(
+    (sum, stock) => sum + (stock.purchasePrice * stock.shares),
+    0
+  );
+
+  const totalChange = ((totalPortfolioValue - initialPortfolioValue) / initialPortfolioValue) * 100;
+
   useEffect(() => {
     // Trigger AI analysis when page loads
     const analyzeStocks = async () => {
@@ -95,6 +126,65 @@ const Investments = () => {
       
       <InvestmentAdvisor stocks={stockInvestments} />
       
+      {/* Portfolio Overview Card */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <LineChart className="w-6 h-6" />
+            Portfolio Overview
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <p className="text-sm text-gray-500">Total Portfolio Value</p>
+              <p className="text-2xl font-bold">${totalPortfolioValue.toFixed(2)} CAD</p>
+            </div>
+            <div className="flex items-center">
+              {totalChange >= 0 ? (
+                <ArrowUp className="w-5 h-5 text-green-500 mr-1" />
+              ) : (
+                <ArrowDown className="w-5 h-5 text-red-500 mr-1" />
+              )}
+              <span className={`text-lg ${totalChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {Math.abs(totalChange).toFixed(2)}%
+              </span>
+            </div>
+          </div>
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <RechartsLineChart data={portfolioData}>
+                <XAxis dataKey="day" />
+                <YAxis />
+                <Tooltip 
+                  formatter={(value: number) => [`$${value.toFixed(2)} CAD`, 'Value']}
+                />
+                <Legend />
+                {stockInvestments.map((stock) => (
+                  <Line
+                    key={stock.symbol}
+                    type="monotone"
+                    dataKey={stock.symbol}
+                    name={`${stock.symbol} (${stock.name})`}
+                    stroke={stock.change >= 0 ? "#22c55e" : "#ef4444"}
+                    dot={false}
+                  />
+                ))}
+                <Line
+                  type="monotone"
+                  dataKey="total"
+                  name="Total Portfolio"
+                  stroke="#0066CC"
+                  strokeWidth={2}
+                  dot={false}
+                />
+              </RechartsLineChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Individual Stocks */}
       <Card>
         <CardHeader className="flex flex-row items-center space-x-4">
           <LineChart className="w-8 h-8 text-primary" />
