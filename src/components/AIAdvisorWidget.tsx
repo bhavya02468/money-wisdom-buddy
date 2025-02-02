@@ -5,12 +5,14 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "react-router-dom";
 
 export const AIAdvisorWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const location = useLocation();
   const [chatHistory, setChatHistory] = useState([
     {
       type: "assistant",
@@ -20,7 +22,7 @@ export const AIAdvisorWidget = () => {
 
   // Function to get financial suggestions - only runs when chat is opened
   const getFinancialSuggestions = async () => {
-    if (!isOpen) return; // Only fetch suggestions when chat is open
+    if (!isOpen) return;
     
     try {
       const user = await supabase.auth.getUser();
@@ -35,13 +37,20 @@ export const AIAdvisorWidget = () => {
       if (data.suggestions) {
         setChatHistory(prev => [...prev, {
           type: "assistant",
-          content: "Based on your recent financial activity, here's a suggestion: " + data.suggestions
+          content: data.suggestions
         }]);
       }
     } catch (error) {
       console.error('Error getting financial suggestions:', error);
     }
   };
+
+  // Auto-open chat with stock analysis on investments page
+  useEffect(() => {
+    if (location.pathname === '/investments' && !isOpen) {
+      setIsOpen(true);
+    }
+  }, [location.pathname]);
 
   // Only fetch suggestions when chat is opened
   useEffect(() => {
@@ -54,7 +63,6 @@ export const AIAdvisorWidget = () => {
     e.preventDefault();
     if (!message.trim() || isLoading) return;
 
-    // Add user message immediately
     const userMessage = { type: "user", content: message.trim() };
     setChatHistory((prev) => [...prev, userMessage]);
     setMessage("");

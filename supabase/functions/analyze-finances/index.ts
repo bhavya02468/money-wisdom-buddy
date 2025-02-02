@@ -13,8 +13,29 @@ serve(async (req) => {
   }
 
   try {
-    const { userId } = await req.json();
-    
+    const { type, stocks, userId } = await req.json();
+
+    if (type === 'stocks') {
+      let suggestions = "Based on your portfolio analysis:\n\n";
+      
+      for (const stock of stocks) {
+        const changePercent = ((stock.currentPrice - stock.purchasePrice) / stock.purchasePrice) * 100;
+        
+        if (changePercent <= -5) {
+          suggestions += `${stock.symbol}: Consider buying more to average down. The current dip might be a good opportunity.\n`;
+        } else if (changePercent >= 10) {
+          suggestions += `${stock.symbol}: Consider taking some profits. The stock has performed well.\n`;
+        } else {
+          suggestions += `${stock.symbol}: Hold position. The stock is showing stable performance.\n`;
+        }
+      }
+
+      return new Response(
+        JSON.stringify({ suggestions }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     if (!userId) {
       throw new Error('User ID is required');
     }
@@ -115,19 +136,14 @@ serve(async (req) => {
         } 
       }
     );
+    
   } catch (error) {
-    console.error('Error in analyze-finances function:', error);
+    console.error('Error:', error);
     return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        details: error.stack
-      }),
+      JSON.stringify({ error: error.message }),
       { 
         status: 500,
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
   }

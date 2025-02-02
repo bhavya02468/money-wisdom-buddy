@@ -1,8 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, ArrowUp, ArrowDown } from "lucide-react";
 import { LineChart as RechartsLineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 const Investments = () => {
+  const { toast } = useToast();
+  
   const stockInvestments = [
     {
       symbol: "AC",
@@ -15,32 +19,6 @@ const Investments = () => {
       data: Array.from({ length: 30 }, (_, i) => ({
         day: i + 1,
         price: 19 + Math.sin(i * 0.3) * 0.5
-      }))
-    },
-    {
-      symbol: "EIT.UN",
-      name: "Canoe EIT Income Fund",
-      shares: 50,
-      purchasePrice: 13.50,
-      currentPrice: 13.73,
-      change: 1.25,
-      changeAmount: 0.17,
-      data: Array.from({ length: 30 }, (_, i) => ({
-        day: i + 1,
-        price: 13.5 + Math.sin(i * 0.3) * 0.3
-      }))
-    },
-    {
-      symbol: "SU",
-      name: "Suncor Energy",
-      shares: 20,
-      purchasePrice: 47.70,
-      currentPrice: 47.81,
-      change: 0.19,
-      changeAmount: 0.09,
-      data: Array.from({ length: 30 }, (_, i) => ({
-        day: i + 1,
-        price: 47.7 + Math.sin(i * 0.3) * 0.2
       }))
     },
     {
@@ -83,6 +61,31 @@ const Investments = () => {
       }))
     }
   ];
+
+  useEffect(() => {
+    // Trigger AI analysis when page loads
+    const analyzeStocks = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('analyze-finances', {
+          body: { 
+            type: 'stocks',
+            stocks: stockInvestments.map(stock => ({
+              symbol: stock.symbol,
+              currentPrice: stock.currentPrice,
+              purchasePrice: stock.purchasePrice,
+              change: stock.change
+            }))
+          },
+        });
+
+        if (error) throw error;
+      } catch (error) {
+        console.error('Error analyzing stocks:', error);
+      }
+    };
+
+    analyzeStocks();
+  }, []);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
