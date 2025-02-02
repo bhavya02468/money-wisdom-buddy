@@ -29,6 +29,7 @@ import { useMonthlyIncome } from "@/hooks/useIncome";
 import { useFinancialGoals } from "@/hooks/useFinancialGoals";
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { RecurringExpenses } from "@/components/RecurringExpenses";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
@@ -63,12 +64,12 @@ const Dashboard = () => {
   const currentMonthIncome = incomeData[0]?.amount || 0;
   const monthlySavings = currentMonthIncome - currentMonthExpense;
 
-  // Calculate total balance
+  // Calculate total balance (sum of all income minus sum of all expenses)
   const totalIncome = incomeData.reduce((sum, item) => sum + item.amount, 0);
   const totalExpenses = expenseData.reduce((sum, item) => sum + item.amount, 0);
   const totalBalance = totalIncome - totalExpenses;
   
-  // Get the primary financial goal
+  // Get the primary financial goal (assuming it's the first one)
   const primaryGoal = goals?.[0];
   const goalProgress = primaryGoal ? (primaryGoal.current_amount / primaryGoal.target_amount) * 100 : 0;
 
@@ -79,6 +80,17 @@ const Dashboard = () => {
     </div>
   );
 
+  // Filter for last month's recurring expenses
+  const currentDate = new Date();
+  const lastMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1);
+  
+  const recurringExpenses = expenses?.filter((expense) => {
+    const expenseDate = new Date(expense.date);
+    return expense.is_recurring && 
+           expenseDate.getMonth() === lastMonth.getMonth() &&
+           expenseDate.getFullYear() === lastMonth.getFullYear();
+  }) || [];
+  
   // Prepare data for line chart (last 6 months)
   const lineChartData = expenseData.slice(0, 6).map((expense, index) => {
     const income = incomeData[index] || { amount: 0 };
@@ -110,7 +122,7 @@ const Dashboard = () => {
     );
   };
 
-  // Hardcoded credit score for demo
+  // Hardcoded credit score for demo (you can replace this with real data later)
   const creditScore = 750;
   const creditScoreColor = getCreditScoreColor(creditScore);
   const creditScoreText = getCreditScoreText(creditScore);
@@ -316,8 +328,10 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Bottom cards */}
+      {/* Bottom cards: Financial Goal Progress, Financial Health Score, Recurring Expenses, and AI Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <RecurringExpenses />
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
