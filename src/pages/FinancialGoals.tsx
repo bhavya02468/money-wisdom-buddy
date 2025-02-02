@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useFinancialGoals } from "@/hooks/useFinancialGoals";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,10 +10,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
 const FinancialGoals = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: goals } = useFinancialGoals();
+  console.log("Goal: ", goals);
   const [loading, setLoading] = useState(false);
   const [newGoal, setNewGoal] = useState({
     name: "",
@@ -228,7 +227,7 @@ const FinancialGoals = () => {
             ))
           ) : (
             <Card>
-              <CardContent className="p-8 text-center">
+              <CardContent className="pt-24 text-center">
                 <Target className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                 <p className="text-lg font-medium mb-2">No Financial Goals Yet</p>
                 <p className="text-sm text-gray-500">

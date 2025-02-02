@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useMonthlyIncome } from "@/hooks/useIncome";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
+import { ChartBar, Loader2, Sparkle } from "lucide-react";
 
 const InvestmentRecommender = () => {
   const { toast } = useToast();
@@ -23,7 +23,7 @@ const InvestmentRecommender = () => {
   const totalIncome = monthlyData?.reduce((sum, item) => sum + item.amount, 0) || 0;
   const totalExpenses = expenses?.reduce((sum, item) => sum + item.amount, 0) || 0;
   const totalBalance = totalIncome - totalExpenses;
-  const suggestedAmount = Math.max(0, totalBalance / 2);
+  const suggestedAmount = Math.max(0, totalBalance * 25 / 100);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -93,10 +93,13 @@ const InvestmentRecommender = () => {
         Investment Recommender
         </h1>
       </div>
-
-      <Card className="max-w-2xl mx-auto">
+      <div className="flex flex-col lg:flex-row gap-8">
+      <div className="lg:w-1/2">
+      <Card>
         <CardHeader>
-          <CardTitle>Investment Recommender</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+                <Sparkle className="w-5 h-5" /> Add Investment Type
+              </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
@@ -104,7 +107,7 @@ const InvestmentRecommender = () => {
               Your total balance: ${totalBalance.toFixed(2)}
             </p>
             <p className="text-sm text-muted-foreground">
-              Suggested investment amount: ${suggestedAmount.toFixed(2)} (50% of your balance)
+              Suggested investment amount: ${suggestedAmount.toFixed(2)} (25% of your balance)
             </p>
           </div>
 
@@ -116,7 +119,7 @@ const InvestmentRecommender = () => {
                   <SelectValue placeholder="Select investment type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="property">Property in Downtown Montreal</SelectItem>
+                  <SelectItem value="property">Property</SelectItem>
                   <SelectItem value="stocks">Stocks</SelectItem>
                   <SelectItem value="bonds">Bonds</SelectItem>
                   <SelectItem value="cryptocurrency">Cryptocurrency</SelectItem>
@@ -166,17 +169,39 @@ const InvestmentRecommender = () => {
               )}
             </Button>
           </div>
-
-          {recommendation && (
-            <div className="mt-6 p-4 bg-muted rounded-lg">
-              <h3 className="font-medium mb-2">Investment Recommendations:</h3>
-              <div className="whitespace-pre-line text-sm">
-                {recommendation}
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
+      </div>
+      <div className="lg:w-1/2">
+  {recommendation ? (
+    <Card className="h-full">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <ChartBar className="w-5 h-5" /> Investment Recommendations:
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="h-[500px] overflow-y-auto">
+        <div className="mt-6 p-4 bg-muted rounded-lg">
+          <div className="whitespace-pre-line text-sm">
+            {recommendation}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  ) : (
+    <Card>
+      <CardContent className="pt-24 text-center">
+        <ChartBar className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+        <p className="text-lg font-medium mb-2">No Recommendations Yet</p>
+        <p className="text-sm text-gray-500">
+          Start by adding your investement type on the left.
+        </p>
+      </CardContent>
+    </Card>
+  )}
+</div>
+
+      </div>
     </div>
   );
 };
