@@ -15,7 +15,7 @@ serve(async (req) => {
   }
 
   try {
-    const { type, userId, expenses, income, goals } = await req.json()
+    const { type, userId, stocks, expenses, income, goals } = await req.json()
 
     if (!userId) {
       return new Response(
@@ -36,37 +36,57 @@ serve(async (req) => {
     })
     const openai = new OpenAIApi(configuration)
 
-    // Prepare financial data for analysis
-    const totalExpenses = expenses?.reduce((sum: number, exp: any) => sum + exp.amount, 0) || 0
-    const totalIncome = income?.reduce((sum: number, inc: any) => sum + inc.amount, 0) || 0
-    const savings = totalIncome - totalExpenses
-    const savingsRate = totalIncome > 0 ? (savings / totalIncome) * 100 : 0
-
-    // Group expenses by category
-    const expensesByCategory = expenses?.reduce((acc: any, exp: any) => {
-      acc[exp.category] = (acc[exp.category] || 0) + exp.amount
-      return acc
-    }, {}) || {}
-
-    // Prepare the prompt for OpenAI
-    const prompt = `As a financial advisor, analyze this user's financial data and provide personalized suggestions:
-    Total Monthly Income: $${totalIncome}
-    Total Monthly Expenses: $${totalExpenses}
-    Monthly Savings: $${savings}
-    Savings Rate: ${savingsRate.toFixed(1)}%
-    Expenses by Category: ${JSON.stringify(expensesByCategory)}
-    Financial Goals: ${JSON.stringify(goals)}
-
-    Based on this data, provide 3 specific, actionable financial suggestions. Focus on:
-    1. Areas where they could reduce spending
-    2. Ways to increase savings
-    3. Progress towards their financial goals
+    let prompt = ''
     
-    Keep the response concise and practical, with a focus on Montreal-specific advice where relevant.`
+    if (type === 'stocks') {
+      // Prepare stock data for analysis
+      const stocksData = stocks.map(stock => 
+        `${stock.symbol}: Current Price $${stock.currentPrice}, Purchase Price $${stock.purchasePrice}, Change ${stock.change}%`
+      ).join('\n')
+
+      prompt = `As a financial advisor, analyze these stock investments and provide actionable suggestions:
+
+      Stock Portfolio:
+      ${stocksData}
+
+      Please provide 3 specific, actionable suggestions about:
+      1. Which stocks are performing well and why
+      2. Which stocks might need attention
+      3. Potential opportunities or risks to watch for
+
+      Keep the response concise and practical, with a focus on Montreal-specific market context where relevant.`
+    } else {
+      // Prepare financial data for analysis
+      const totalExpenses = expenses?.reduce((sum, exp) => sum + exp.amount, 0) || 0
+      const totalIncome = income?.reduce((sum, inc) => sum + inc.amount, 0) || 0
+      const savings = totalIncome - totalExpenses
+      const savingsRate = totalIncome > 0 ? (savings / totalIncome) * 100 : 0
+
+      // Group expenses by category
+      const expensesByCategory = expenses?.reduce((acc, exp) => {
+        acc[exp.category] = (acc[exp.category] || 0) + exp.amount
+        return acc
+      }, {}) || {}
+
+      prompt = `As a financial advisor, analyze this user's financial data and provide personalized suggestions:
+      Total Monthly Income: $${totalIncome}
+      Total Monthly Expenses: $${totalExpenses}
+      Monthly Savings: $${savings}
+      Savings Rate: ${savingsRate.toFixed(1)}%
+      Expenses by Category: ${JSON.stringify(expensesByCategory)}
+      Financial Goals: ${JSON.stringify(goals)}
+
+      Based on this data, provide 3 specific, actionable financial suggestions. Focus on:
+      1. Areas where they could reduce spending
+      2. Ways to increase savings
+      3. Progress towards their financial goals
+      
+      Keep the response concise and practical, with a focus on Montreal-specific advice where relevant.`
+    }
 
     // Get suggestions from OpenAI
     const completion = await openai.createChatCompletion({
-      model: 'gpt-4',
+      model: 'gpt-4o-mini',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.7,
       max_tokens: 500,
