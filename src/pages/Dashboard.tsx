@@ -25,7 +25,7 @@ import { Progress } from "@/components/ui/progress";
 import { useExpenses, useMonthlyExpenses } from "@/hooks/useExpenses";
 import { useMonthlyIncome } from "@/hooks/useIncome";
 import { useFinancialGoals } from "@/hooks/useFinancialGoals";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
@@ -51,6 +51,7 @@ const Dashboard = () => {
   const { monthlyData: incomeData } = useMonthlyIncome();
   const { data: goals } = useFinancialGoals();
   const [aiInsights, setAiInsights] = useState<string>("");
+  const insightsGeneratedRef = useRef(false);
 
   // Calculate current month totals
   const currentMonthExpense = expenseData[0]?.amount || 0;
@@ -122,9 +123,12 @@ const Dashboard = () => {
   const creditScoreColor = getCreditScoreColor(creditScore);
   const creditScoreText = getCreditScoreText(creditScore);
 
-  // Add effect to fetch AI insights with user ID
+  // Add effect to fetch AI insights with user ID only once
   useEffect(() => {
     const getAiInsights = async () => {
+      // If insights have already been generated, don't generate them again
+      if (insightsGeneratedRef.current) return;
+
       try {
         const { data: { user } } = await supabase.auth.getUser();
         
@@ -146,6 +150,7 @@ const Dashboard = () => {
         if (error) throw error;
         if (data?.suggestions) {
           setAiInsights(data.suggestions);
+          insightsGeneratedRef.current = true; // Mark insights as generated
         }
       } catch (error) {
         console.error('Error getting AI insights:', error);
