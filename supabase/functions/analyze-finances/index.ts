@@ -8,6 +8,29 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
+interface Stock {
+  symbol: string;
+  currentPrice: number;
+  purchasePrice: number;
+  change: number;
+  name: string;
+}
+
+interface Expense {
+  amount: number;
+  category: string;
+}
+
+interface Income {
+  amount: number;
+}
+
+interface Goal {
+  target_amount: number;
+  current_amount: number;
+  name: string;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -63,23 +86,35 @@ serve(async (req) => {
     }
     
     if (type === 'stocks') {
-      prompt = `As a financial advisor, analyze the current market conditions and provide actionable suggestions.
+      const stocksData = stocks as Stock[]
+      const stocksAnalysis = stocksData.map(stock => {
+        const percentChange = ((stock.currentPrice - stock.purchasePrice) / stock.purchasePrice) * 100
+        const recommendation = percentChange > 10 ? 'consider taking profits' :
+                             percentChange < -10 ? 'consider averaging down' :
+                             'hold position'
+        return `${stock.name} (${stock.symbol}): ${recommendation}`
+      }).join('\n')
 
-      Please provide 3 specific, actionable suggestions about:
-      1. Current market trends and opportunities
-      2. Risk management strategies
-      3. Potential sectors to watch
+      prompt = `As a financial advisor, analyze these stocks and provide actionable suggestions:
+
+      Stock Analysis:
+      ${stocksAnalysis}
+
+      Please provide specific recommendations for each stock, considering:
+      1. Current market trends
+      2. Price movements
+      3. Risk management
 
       Keep the response concise and practical, with a focus on Montreal-specific market context where relevant.`
     } else if (type === 'insights') {
       // Prepare financial data for analysis
-      const totalExpenses = expenses?.reduce((sum: number, exp: { amount: number }) => sum + exp.amount, 0) || 0
-      const totalIncome = income?.reduce((sum: number, inc: { amount: number }) => sum + inc.amount, 0) || 0
+      const totalExpenses = expenses?.reduce((sum: number, exp: Expense) => sum + exp.amount, 0) || 0
+      const totalIncome = income?.reduce((sum: number, inc: Income) => sum + inc.amount, 0) || 0
       const savings = totalIncome - totalExpenses
       const savingsRate = totalIncome > 0 ? (savings / totalIncome) * 100 : 0
 
       // Group expenses by category
-      const expensesByCategory = expenses?.reduce((acc: { [key: string]: number }, exp: { category: string, amount: number }) => {
+      const expensesByCategory = expenses?.reduce((acc: { [key: string]: number }, exp: Expense) => {
         acc[exp.category] = (acc[exp.category] || 0) + exp.amount
         return acc
       }, {}) || {}
