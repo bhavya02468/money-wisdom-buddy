@@ -15,6 +15,7 @@ const InvestmentRecommender = () => {
   const { monthlyData } = useMonthlyIncome();
   const [loading, setLoading] = useState(false);
   const [investmentType, setInvestmentType] = useState<string>("");
+  const [riskLevel, setRiskLevel] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
   const [recommendation, setRecommendation] = useState<string>("");
 
@@ -57,6 +58,7 @@ const InvestmentRecommender = () => {
       const { data, error } = await supabase.functions.invoke('investment-advice', {
         body: { 
           investmentType,
+          riskLevel,
           amount: parseFloat(amount),
           totalBalance,
           userId: user.id
@@ -108,11 +110,25 @@ const InvestmentRecommender = () => {
                   <SelectValue placeholder="Select investment type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="property">Property</SelectItem>
+                  <SelectItem value="property">Property in Downtown Montreal</SelectItem>
                   <SelectItem value="stocks">Stocks</SelectItem>
                   <SelectItem value="bonds">Bonds</SelectItem>
                   <SelectItem value="cryptocurrency">Cryptocurrency</SelectItem>
                   <SelectItem value="mutual_funds">Mutual Funds</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Risk Level</label>
+              <Select onValueChange={setRiskLevel}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select risk level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="conservative">Conservative (Lower risk, stable returns)</SelectItem>
+                  <SelectItem value="medium">Medium (Balanced risk and returns)</SelectItem>
+                  <SelectItem value="risky">Risky (Higher risk, potential higher returns)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -131,7 +147,7 @@ const InvestmentRecommender = () => {
 
             <Button
               onClick={getInvestmentAdvice}
-              disabled={!investmentType || !amount || loading || Number(amount) <= 0}
+              disabled={!investmentType || !riskLevel || !amount || loading || Number(amount) <= 0}
               className="w-full"
             >
               {loading ? (

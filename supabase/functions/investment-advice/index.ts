@@ -12,14 +12,41 @@ serve(async (req) => {
   }
 
   try {
-    const { investmentType, amount, totalBalance, userId } = await req.json();
+    const { investmentType, riskLevel, amount, totalBalance, userId } = await req.json();
 
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
       throw new Error('OpenAI API key not configured');
     }
 
-    const prompt = `As a financial advisor, provide a detailed recommendation for a ${investmentType} investment of $${amount} (which is ${((amount/totalBalance)*100).toFixed(1)}% of their total balance of $${totalBalance}). Include both a risky (higher potential returns) and a conservative (lower but safer returns) option. Keep the response concise but informative, focusing on potential returns and risks. Format the response in a clear, easy-to-read way.`;
+    let prompt = '';
+    if (investmentType === 'property') {
+      prompt = `As a financial advisor, provide a detailed ${riskLevel} investment recommendation for a property investment of $${amount} in downtown Montreal (which is ${((amount/totalBalance)*100).toFixed(1)}% of their total balance of $${totalBalance}). 
+
+Format your response in this structure:
+1. Investment Strategy (${riskLevel} approach)
+2. Specific Areas to Consider in Downtown Montreal
+3. Property Types to Focus On
+4. Expected Returns and Timeline
+5. Key Risks to Consider
+6. Additional Recommendations
+
+Keep the response professional but easy to understand. Focus on current market conditions and practical next steps.`;
+    } else {
+      prompt = `As a financial advisor, provide a detailed ${riskLevel} investment recommendation for a ${investmentType} investment of $${amount} (which is ${((amount/totalBalance)*100).toFixed(1)}% of their total balance of $${totalBalance}). 
+
+Format your response in this structure:
+1. Investment Strategy (${riskLevel} approach)
+2. Specific Recommendations
+3. Expected Returns
+4. Risk Analysis
+5. Timeline Considerations
+6. Additional Tips
+
+Keep the response professional but easy to understand. Focus on practical next steps.`;
+    }
+
+    console.log('Generating investment advice with prompt:', prompt);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -32,9 +59,9 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a knowledgeable financial advisor providing investment recommendations. Be clear, concise, and always consider both risk and potential returns in your advice.',
+            content: 'You are a knowledgeable financial advisor providing investment recommendations. Be clear, concise, and always consider both risk and potential returns in your advice. Format your responses in a structured, easy-to-read way.',
           },
-          { role: 'user', content: prompt },
+          { role: 'user', content: prompt }
         ],
         temperature: 0.7,
       }),
@@ -46,6 +73,8 @@ serve(async (req) => {
 
     const data = await response.json();
     const recommendation = data.choices[0].message.content;
+
+    console.log('Generated recommendation:', recommendation);
 
     return new Response(
       JSON.stringify({ recommendation }),
