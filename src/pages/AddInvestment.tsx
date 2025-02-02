@@ -1,71 +1,65 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { useExpenses } from "@/hooks/useExpenses";
 import { useMonthlyIncome } from "@/hooks/useIncome";
-import { useMonthlyExpenses } from "@/hooks/useExpenses";
-import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Loader2 } from "lucide-react";
 
 const AddInvestment = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
-  const { monthlyData: incomeData } = useMonthlyIncome();
-  const { monthlyData: expenseData } = useMonthlyExpenses();
-  
-  const [type, setType] = useState<string>("");
-  const [amount, setAmount] = useState<string>("");
+  const { data: expenses } = useExpenses();
+  const { data: income } = useMonthlyIncome();
   const [loading, setLoading] = useState(false);
+  const [investmentType, setInvestmentType] = useState<string>("");
+  const [amount, setAmount] = useState<string>("");
   const [recommendation, setRecommendation] = useState<string>("");
 
-  // Calculate total balance
-  const totalIncome = incomeData.reduce((sum, item) => sum + item.amount, 0);
-  const totalExpenses = expenseData.reduce((sum, item) => sum + item.amount, 0);
+  // Calculate total balance (income - expenses)
+  const totalIncome = income?.monthlyData?.reduce((sum, item) => sum + item.amount, 0) || 0;
+  const totalExpenses = expenses?.reduce((sum, item) => sum + item.amount, 0) || 0;
   const totalBalance = totalIncome - totalExpenses;
   const suggestedAmount = totalBalance / 2;
 
-  const getInvestmentRecommendation = async () => {
+  const getInvestmentAdvice = async () => {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
       if (!user) {
         toast({
           title: "Error",
-          description: "Please log in to get investment recommendations",
+          description: "Please log in to get investment advice",
           variant: "destructive",
         });
         return;
       }
 
-      const response = await fetch("/api/investment-advice", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          investmentType: type,
+      const { data, error } = await supabase.functions.invoke('investment-advice', {
+        body: { 
+          investmentType,
           amount: parseFloat(amount),
           totalBalance,
-          userId: user.id,
-        }),
+          userId: user.id
+        },
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to get investment recommendation");
-      }
+      if (error) throw error;
 
-      const data = await response.json();
-      setRecommendation(data.recommendation);
+      if (data?.recommendation) {
+        setRecommendation(data.recommendation);
+        toast({
+          title: "Success",
+          description: "Investment advice generated successfully",
+        });
+      }
     } catch (error) {
-      console.error("Error getting investment recommendation:", error);
+      console.error('Error getting investment advice:', error);
       toast({
         title: "Error",
-        description: "Failed to get investment recommendation",
+        description: "Failed to get investment advice",
         variant: "destructive",
       });
     } finally {
@@ -75,57 +69,69 @@ const AddInvestment = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <Card>
+      <Card className="max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle>Add Investment</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="type">Investment Type</Label>
-            <Select onValueChange={setType} value={type}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select investment type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="property">Property</SelectItem>
-                <SelectItem value="stocks">Stocks</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="amount">Investment Amount</Label>
-            <Input
-              id="amount"
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder={`Suggested amount: $${suggestedAmount.toFixed(2)}`}
-            />
-            <p className="text-sm text-muted-foreground">
+          <div>
+            <p className="text-sm text-muted-foreground mb-2">
               Your total balance: ${totalBalance.toFixed(2)}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Suggested investment amount: ${suggestedAmount.toFixed(2)} (50% of your balance)
             </p>
           </div>
 
-          <Button
-            onClick={getInvestmentRecommendation}
-            disabled={!type || !amount || loading}
-            className="w-full"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Getting Recommendation...
-              </>
-            ) : (
-              "Get Investment Recommendation"
-            )}
-          </Button>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Investment Type</label>
+              <Select onValueChange={setInvestmentType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select investment type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="property">Property</SelectItem>
+                  <SelectItem value="stocks">Stocks</SelectItem>
+                  <SelectItem value="bonds">Bonds</SelectItem>
+                  <SelectItem value="cryptocurrency">Cryptocurrency</SelectItem>
+                  <SelectItem value="mutual_funds">Mutual Funds</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Investment Amount ($)</label>
+              <Input
+                type="number"
+                placeholder="Enter amount"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+            </div>
+
+            <Button
+              onClick={getInvestmentAdvice}
+              disabled={!investmentType || !amount || loading}
+              className="w-full"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Getting Advice...
+                </>
+              ) : (
+                'Get Investment Advice'
+              )}
+            </Button>
+          </div>
 
           {recommendation && (
-            <div className="mt-4 p-4 bg-secondary rounded-lg">
-              <h3 className="font-semibold mb-2">AI Recommendation:</h3>
-              <p className="text-sm">{recommendation}</p>
+            <div className="mt-6 p-4 bg-muted rounded-lg">
+              <h3 className="font-medium mb-2">Investment Recommendations:</h3>
+              <div className="whitespace-pre-line text-sm">
+                {recommendation}
+              </div>
             </div>
           )}
         </CardContent>
