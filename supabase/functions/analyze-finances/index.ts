@@ -1,129 +1,101 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
+import { Configuration, OpenAIApi } from 'https://esm.sh/openai@3.3.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const { type, stocks, userId, expenses, income, goals } = await req.json();
+    const { type, userId, expenses, income, goals } = await req.json()
 
-    // Validate userId is present
     if (!userId) {
       return new Response(
         JSON.stringify({ error: 'User ID is required' }),
         { 
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
-    }
-
-    if (type === 'stocks') {
-      let suggestions = "Based on your portfolio analysis:\n\n";
-      
-      for (const stock of stocks) {
-        const changePercent = ((stock.currentPrice - stock.purchasePrice) / stock.purchasePrice) * 100;
-        
-        if (changePercent <= -5) {
-          suggestions += `${stock.symbol}: Consider buying more to average down. The current dip might be a good opportunity.\n`;
-        } else if (changePercent >= 10) {
-          suggestions += `${stock.symbol}: Consider taking some profits. The stock has performed well.\n`;
-        } else {
-          suggestions += `${stock.symbol}: Hold position. The stock is showing stable performance.\n`;
-        }
-      }
-
-      return new Response(
-        JSON.stringify({ suggestions }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log('Initializing Supabase client...');
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-
-    if (!supabaseUrl || !supabaseServiceKey || !openAIApiKey) {
-      throw new Error('Missing required environment variables');
-    }
-
-    console.log('Preparing Montreal-specific analysis prompt...');
-    const analysisPrompt = `
-      As a financial advisor familiar with Montreal downtown, analyze this data:
-      - Monthly Income: $${income.reduce((sum: number, inc: any) => sum + Number(inc.amount), 0)}
-      - Monthly Expenses: $${expenses.reduce((sum: number, exp: any) => sum + Number(exp.amount), 0)}
-      - Financial Goals: ${goals.map((g: any) => `${g.name}: $${g.target_amount}`).join(', ')}
-
-      Provide ONE specific, actionable suggestion (max 80 words) focusing on:
-      1. Montreal-specific savings opportunities (e.g., STM OPUS card deals, student discounts)
-      2. Local subscription alternatives (e.g., independent gym deals vs. chain gyms)
-      3. Downtown Montreal budget tips (e.g., affordable lunch spots, happy hour deals)
-      4. Seasonal money-saving opportunities in Montreal
-
-      Keep the response very concise and practical, focusing on unique Montreal downtown opportunities.
-    `;
-
-    console.log('Calling OpenAI API...');
-    const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a helpful financial advisor based in Montreal downtown. Provide specific, actionable advice based on real financial data and local opportunities.'
-          },
-          {
-            role: 'user',
-            content: analysisPrompt
+          status: 400, 
+          headers: { 
+            ...corsHeaders,
+            'Content-Type': 'application/json'
           }
-        ],
-        temperature: 0.7,
-        max_tokens: 120,
-      }),
-    });
-
-    if (!aiResponse.ok) {
-      const errorData = await aiResponse.json();
-      console.error('OpenAI API error:', errorData);
-      throw new Error('Failed to get AI suggestions');
+        }
+      )
     }
 
-    const aiData = await aiResponse.json();
-    const suggestions = aiData.choices[0].message.content;
+    // Initialize OpenAI
+    const configuration = new Configuration({
+      apiKey: Deno.env.get('OPENAI_API_KEY'),
+    })
+    const openai = new OpenAIApi(configuration)
 
-    console.log('Successfully generated Montreal-specific suggestions');
+    // Prepare financial data for analysis
+    const totalExpenses = expenses?.reduce((sum: number, exp: any) => sum + exp.amount, 0) || 0
+    const totalIncome = income?.reduce((sum: number, inc: any) => sum + inc.amount, 0) || 0
+    const savings = totalIncome - totalExpenses
+    const savingsRate = totalIncome > 0 ? (savings / totalIncome) * 100 : 0
+
+    // Group expenses by category
+    const expensesByCategory = expenses?.reduce((acc: any, exp: any) => {
+      acc[exp.category] = (acc[exp.category] || 0) + exp.amount
+      return acc
+    }, {}) || {}
+
+    // Prepare the prompt for OpenAI
+    const prompt = `As a financial advisor, analyze this user's financial data and provide personalized suggestions:
+    Total Monthly Income: $${totalIncome}
+    Total Monthly Expenses: $${totalExpenses}
+    Monthly Savings: $${savings}
+    Savings Rate: ${savingsRate.toFixed(1)}%
+    Expenses by Category: ${JSON.stringify(expensesByCategory)}
+    Financial Goals: ${JSON.stringify(goals)}
+
+    Based on this data, provide 3 specific, actionable financial suggestions. Focus on:
+    1. Areas where they could reduce spending
+    2. Ways to increase savings
+    3. Progress towards their financial goals
+    
+    Keep the response concise and practical, with a focus on Montreal-specific advice where relevant.`
+
+    // Get suggestions from OpenAI
+    const completion = await openai.createChatCompletion({
+      model: 'gpt-4',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.7,
+      max_tokens: 500,
+    })
+
+    const suggestions = completion.data.choices[0]?.message?.content || 'Unable to generate suggestions at this time.'
+
+    // Return the response with CORS headers
     return new Response(
       JSON.stringify({ suggestions }),
       { 
         headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        } 
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
       }
-    );
-    
+    )
+
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
       }
-    );
+    )
   }
-});
+})
