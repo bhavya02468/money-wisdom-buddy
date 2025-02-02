@@ -13,7 +13,6 @@ const FinancialGoals = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: goals } = useFinancialGoals();
-  console.log("Goal: ", goals);
   const [loading, setLoading] = useState(false);
   const [newGoal, setNewGoal] = useState({
     name: "",
