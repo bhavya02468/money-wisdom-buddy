@@ -11,13 +11,14 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
 } from "@/components/ui/sidebar";
-import { LineChart, LogOut, PlusCircle, Target, Building2, Coins } from "lucide-react";
+import { LineChart, LogOut, PlusCircle, Target, Building2, Coins, User } from "lucide-react";
 import { AIAdvisorWidget } from "./AIAdvisorWidget";
+import { useEffect, useState } from "react";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
-
+  
   const handleLogout = () => {
     localStorage.clear();
     navigate("/");
@@ -122,6 +123,13 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
+
+          {/* User Profile at the Bottom */}
+          <div className="p-4 border-t flex items-center gap-3">
+            <User className="w-8 h-8 text-gray-700" />
+            <span className="text-lg font-semibold text-gray-700">{localStorage.getItem("fullName")}</span>
+          </div>
+
         </Sidebar>
 
         {/* Main Content */}
