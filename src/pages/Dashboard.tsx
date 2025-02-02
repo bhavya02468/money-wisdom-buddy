@@ -20,21 +20,15 @@ import {
   Target,
   ArrowUp,
   ArrowDown,
-<<<<<<< HEAD
   Lightbulb
-=======
->>>>>>> parent of 385fed0 (Dasboard Updates)
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useMonthlyExpenses } from "@/hooks/useExpenses";
 import { useMonthlyIncome } from "@/hooks/useIncome";
 import { useFinancialGoals } from "@/hooks/useFinancialGoals";
-<<<<<<< HEAD
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-=======
 import { RecurringExpenses } from "@/components/RecurringExpenses";
->>>>>>> parent of 385fed0 (Dasboard Updates)
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
@@ -131,7 +125,7 @@ const Dashboard = () => {
           body: { 
             type: 'insights',
             userId: user.id,
-            expenses: expenses || [],
+            expenses: expenseData || [],
             income: incomeData || [],
             goals: goals || []
           },
@@ -147,10 +141,10 @@ const Dashboard = () => {
       }
     };
 
-    if (expenses || incomeData || goals) {
+    if (expenseData || incomeData || goals) {
       getAiInsights();
     }
-  }, [expenses, incomeData, goals]);
+  }, [expenseData, incomeData, goals]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -293,26 +287,10 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-<<<<<<< HEAD
             <CardTitle>Recurring Expenses</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {recurringExpenses.map((expense) => (
-                <div
-                  key={expense.id}
-                  className="flex items-center justify-between p-2 rounded-lg bg-secondary/10"
-                >
-                  <div>
-                    <p className="font-medium">{expense.description}</p>
-                    <p className="text-sm text-muted-foreground">{expense.category}</p>
-                  </div>
-                  <p className="font-medium text-red-500">
-                    -${expense.amount.toFixed(2)}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <RecurringExpenses />
           </CardContent>
         </Card>
 
@@ -349,8 +327,6 @@ const Dashboard = () => {
 
         <Card>
           <CardHeader>
-=======
->>>>>>> parent of 385fed0 (Dasboard Updates)
             <CardTitle className="flex items-center gap-2">
               <Target className="w-5 h-5" />
               Financial Goal Progress
@@ -395,10 +371,6 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
-
-        <div className="lg:col-span-2">
-          <RecurringExpenses />
-        </div>
       </div>
     </div>
   );
