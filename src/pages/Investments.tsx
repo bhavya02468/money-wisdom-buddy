@@ -3,6 +3,8 @@ import { LineChart, ArrowUp, ArrowDown } from "lucide-react";
 import { LineChart as RechartsLineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { InvestmentAdvisor } from "@/components/InvestmentAdvisor";
 
 const Investments = () => {
   const { toast } = useToast();
@@ -90,6 +92,8 @@ const Investments = () => {
   return (
     <div className="container mx-auto p-6 space-y-6">
       <h1 className="text-3xl font-bold mb-8">Investment Portfolio</h1>
+      
+      <InvestmentAdvisor stocks={stockInvestments} />
       
       <Card>
         <CardHeader className="flex flex-row items-center space-x-4">
