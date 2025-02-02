@@ -21,7 +21,7 @@ import {
   Target,
   ArrowUp,
   ArrowDown,
-  Lightbulb
+  Lightbulb,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useExpenses, useMonthlyExpenses } from "@/hooks/useExpenses";
@@ -31,8 +31,13 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { RecurringExpenses } from "@/components/RecurringExpenses";
 
+// Define colors for pie chart categories.
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
+/**
+ * Returns a color based on the credit score value.
+ * @param score - The credit score.
+ */
 const getCreditScoreColor = (score: number) => {
   if (score >= 800) return "#9b87f5"; // Excellent
   if (score >= 740) return "#31ED50"; // Very Good
@@ -41,6 +46,10 @@ const getCreditScoreColor = (score: number) => {
   return "#1A1F2C"; // Poor
 };
 
+/**
+ * Returns a text label based on the credit score value.
+ * @param score - The credit score.
+ */
 const getCreditScoreText = (score: number) => {
   if (score >= 800) return "Excellent";
   if (score >= 740) return "Very Good";
@@ -52,50 +61,69 @@ const getCreditScoreText = (score: number) => {
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Fetch data using custom hooks.
   const { data: expenses } = useExpenses();
   const { monthlyData: expenseData, spendingByCategory } = useMonthlyExpenses();
   const { monthlyData: incomeData } = useMonthlyIncome();
   const { data: goals } = useFinancialGoals();
+
+  // State to store AI insights and a ref to prevent re-generation.
   const [aiInsights, setAiInsights] = useState<string>("");
   const insightsGeneratedRef = useRef(false);
 
-  // Calculate current month totals
-  const currentMonthExpense = expenseData[expenseData.length-1]?.amount || 0;
+  // Calculate current month expense, income, and monthly savings.
+  const currentMonthExpense = expenseData[expenseData.length - 1]?.amount || 0;
   const currentMonthIncome = incomeData[0]?.amount || 0;
   const monthlySavings = currentMonthIncome - currentMonthExpense;
 
-  // Calculate total balance (sum of all income minus sum of all expenses)
+  // Calculate overall total balance.
   const totalIncome = incomeData.reduce((sum, item) => sum + item.amount, 0);
   const totalExpenses = expenseData.reduce((sum, item) => sum + item.amount, 0);
   const totalBalance = totalIncome - totalExpenses;
-  
-  // Get the primary financial goal (assuming it's the first one)
-  const primaryGoal = goals?.[0];
-  const goalProgress = primaryGoal ? (primaryGoal.current_amount / primaryGoal.target_amount) * 100 : 0;
 
+  // Use the first financial goal as the primary goal.
+  const primaryGoal = goals?.[0];
+  const goalProgress = primaryGoal
+    ? (primaryGoal.current_amount / primaryGoal.target_amount) * 100
+    : 0;
+
+  // Component to display when no data is available.
   const EmptyState = () => (
     <div className="flex flex-col items-center justify-center p-8 text-center">
       <p className="text-lg text-gray-500 mb-4">No data available</p>
       <p className="text-sm text-gray-400">Start by adding some income or expenses</p>
     </div>
   );
-  
-  // Prepare data for line chart (last 6 months)
+
+  // Prepare data for the line chart (last 6 months).
   const lineChartData = expenseData.slice(0, 6).map((expense, index) => {
     const income = incomeData[index] || { amount: 0 };
     const balance = income.amount - expense.amount;
     return {
       month: expense.month,
       expense: expense.amount,
-      balance: balance
+      balance: balance,
     };
   });
 
-  const monthlySavingsChange = ((lineChartData[lineChartData.length - 1].balance - lineChartData[lineChartData.length - 2].balance)/lineChartData[lineChartData.length - 1].balance)*100;
-  console.log("Expense: ", lineChartData);
+  // Calculate change in monthly savings between the last two months.
+  const monthlySavingsChange =
+    lineChartData.length > 1
+      ? ((lineChartData[lineChartData.length - 1].balance -
+          lineChartData[lineChartData.length - 2].balance) /
+          lineChartData[lineChartData.length - 1].balance) *
+        100
+      : 0;
 
-  const balanceChange = ((lineChartData[lineChartData.length - 1]?.balance)/totalBalance) * 100;
+  // Calculate a balance change indicator based on current month’s balance vs. total.
+  const balanceChange = ((lineChartData[lineChartData.length - 1]?.balance) / totalBalance) * 100;
 
+  /**
+   * Renders an arrow indicator for a given percentage change.
+   * Returns an upward arrow for positive change and a downward arrow for negative change.
+   * @param change - The percentage change.
+   */
   const getChangeIndicator = (change: number) => {
     if (change === 0) return null;
     return change > 0 ? (
@@ -111,21 +139,27 @@ const Dashboard = () => {
     );
   };
 
-  // Hardcoded credit score for demo (you can replace this with real data later)
+  // Hardcoded credit score for demo purposes (replace with real data as needed).
   const creditScore = 750;
   const creditScoreColor = getCreditScoreColor(creditScore);
   const creditScoreText = getCreditScoreText(creditScore);
 
-  // Add effect to fetch AI insights with user ID only once
+  /**
+   * Fetch AI insights from the server using Supabase functions.
+   * This runs only once once the required data is available.
+   */
   useEffect(() => {
     const getAiInsights = async () => {
       if (insightsGeneratedRef.current) return;
 
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        
+        // Retrieve the authenticated user.
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
         if (!user) {
-          console.error('No authenticated user found');
+          console.error("No authenticated user found");
           toast({
             title: "Error",
             description: "Please log in to view insights",
@@ -135,13 +169,14 @@ const Dashboard = () => {
           return;
         }
 
-        const { data, error } = await supabase.functions.invoke('analyze-finances', {
-          body: { 
-            type: 'insights',
+        // Invoke the serverless function to analyze finances.
+        const { data, error } = await supabase.functions.invoke("analyze-finances", {
+          body: {
+            type: "insights",
             userId: user.id,
             expenses: expenses || [],
             income: incomeData || [],
-            goals: goals || []
+            goals: goals || [],
           },
         });
 
@@ -153,13 +188,14 @@ const Dashboard = () => {
           });
           throw error;
         }
-        
+
+        // If insights are available, update the state.
         if (data?.suggestions) {
           setAiInsights(data.suggestions);
           insightsGeneratedRef.current = true;
         }
       } catch (error) {
-        console.error('Error getting AI insights:', error);
+        console.error("Error getting AI insights:", error);
         toast({
           title: "Error",
           description: "Failed to analyze finances",
@@ -175,14 +211,16 @@ const Dashboard = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8 bg-gradient-to-br from-background to-surface">
+      {/* Dashboard Header */}
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
           Financial Dashboard
         </h1>
       </div>
 
-      {/* Top summary cards */}
+      {/* Top Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Total Balance */}
         <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-white to-gray-50">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -200,6 +238,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
+        {/* Credit Score */}
         <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-white to-gray-50">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -208,7 +247,9 @@ const Dashboard = () => {
                 <p className="text-2xl font-semibold" style={{ color: creditScoreColor }}>
                   {creditScore}
                 </p>
-                <p className="text-sm" style={{ color: creditScoreColor }}>{creditScoreText}</p>
+                <p className="text-sm" style={{ color: creditScoreColor }}>
+                  {creditScoreText}
+                </p>
               </div>
               <div className="p-3 rounded-full" style={{ backgroundColor: `${creditScoreColor}20` }}>
                 <Award className="w-8 h-8" style={{ color: creditScoreColor }} />
@@ -217,6 +258,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
+        {/* Monthly Savings */}
         <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-white to-gray-50">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -234,6 +276,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
+        {/* Monthly Expenses */}
         <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-white to-gray-50">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -252,38 +295,43 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Charts */}
+      {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Balance & Expenses Trend Chart */}
         <Card className="hover:shadow-lg transition-all duration-300">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-primary">Balance & Expenses Trend</CardTitle>
+            <CardTitle className="text-lg font-semibold text-primary">
+              Balance & Expenses Trend
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {lineChartData.length > 0 ? (
               <div className="h-[300px]">
-                <ChartContainer config={{ 
-                  balance: { color: "#0066CC" },
-                  expense: { color: "#FF4444" }
-                }}>
+                <ChartContainer
+                  config={{
+                    balance: { color: "#0066CC" },
+                    expense: { color: "#FF4444" },
+                  }}
+                >
                   <LineChart data={lineChartData}>
                     <XAxis dataKey="month" />
                     <YAxis />
                     <ChartTooltip />
-                    <Line 
-                      type="monotone" 
-                      dataKey="balance" 
-                      stroke="var(--color-balance)" 
+                    <Line
+                      type="monotone"
+                      dataKey="balance"
+                      stroke="var(--color-balance)"
                       strokeWidth={2}
                       dot={{ strokeWidth: 2 }}
-                      name="Balance" 
+                      name="Balance"
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="expense" 
-                      stroke="var(--color-expense)" 
+                    <Line
+                      type="monotone"
+                      dataKey="expense"
+                      stroke="var(--color-expense)"
                       strokeWidth={2}
                       dot={{ strokeWidth: 2 }}
-                      name="Expenses" 
+                      name="Expenses"
                     />
                   </LineChart>
                 </ChartContainer>
@@ -297,9 +345,12 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
+        {/* Expenses by Category Pie Chart */}
         <Card className="hover:shadow-lg transition-all duration-300">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-primary">Expenses by Category</CardTitle>
+            <CardTitle className="text-lg font-semibold text-primary">
+              Expenses by Category
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {spendingByCategory.length > 0 ? (
@@ -315,17 +366,19 @@ const Dashboard = () => {
                       fill="#8884d8"
                       dataKey="value"
                       nameKey="name"
-                      label={({ name, percent }) => `${name} (${(percent * 100).toFixed(1)}%)`}
+                      label={({ name, percent }) =>
+                        `${name} (${(percent * 100).toFixed(1)}%)`
+                      }
                     >
                       {spendingByCategory.map((entry, index) => (
-                        <Cell 
-                          key={`cell-${index}`} 
+                        <Cell
+                          key={`cell-${index}`}
                           fill={COLORS[index % COLORS.length]}
                         />
                       ))}
                     </Pie>
-                    <Tooltip 
-                      formatter={(value: number) => [`$${value.toFixed(2)}`, 'Amount']}
+                    <Tooltip
+                      formatter={(value: number) => [`$${value.toFixed(2)}`, "Amount"]}
                     />
                   </PieChart>
                 </ChartContainer>
@@ -340,8 +393,9 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Bottom cards */}
+      {/* Bottom Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* AI Insights Card with Increased Font Size */}
         <Card className="hover:shadow-lg transition-all duration-300">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg font-semibold text-primary">
@@ -352,7 +406,8 @@ const Dashboard = () => {
           <CardContent>
             {aiInsights ? (
               <div className="space-y-4 p-4 bg-gradient-to-br from-primary/5 to-transparent rounded-lg">
-                <p className="text-sm leading-relaxed text-text whitespace-pre-line">
+                {/* Increased font size (text-lg) for better readability */}
+                <p className="text-lg leading-relaxed text-text whitespace-pre-line">
                   {aiInsights}
                 </p>
               </div>
@@ -364,8 +419,10 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
+        {/* Recurring Expenses Component */}
         <RecurringExpenses />
 
+        {/* Financial Goal Progress Card */}
         <Card className="hover:shadow-lg transition-all duration-300">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg font-semibold text-primary">
@@ -395,6 +452,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
+        {/* Financial Health Score Card */}
         <Card className="hover:shadow-lg transition-all duration-300">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg font-semibold text-primary">
@@ -404,7 +462,11 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-center p-6 bg-gradient-to-br from-primary/5 to-transparent rounded-lg">
-              <div className={`text-4xl font-bold mb-2 ${monthlySavings > 0 ? 'text-green-500' : 'text-red-500'}`}>
+              <div
+                className={`text-4xl font-bold mb-2 ${
+                  monthlySavings > 0 ? "text-green-500" : "text-red-500"
+                }`}
+              >
                 {monthlySavings > 0 ? "Good" : "Needs Attention"}
               </div>
               <p className="text-sm text-text-light">
