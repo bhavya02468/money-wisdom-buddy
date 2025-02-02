@@ -28,7 +28,8 @@ serve(async (req) => {
 ${stocksAnalysis}
 
 For each stock, provide a one-line recommendation starting with either BUY, SELL, or HOLD in capital letters, followed by a brief explanation.
-Keep each recommendation concise and focus on the price movement and current market position.`;
+Keep each recommendation under 50 words and focus on the price movement and current market position.
+Be very concise and direct with your recommendations.`;
 
     console.log('Analyzing stocks with prompt:', prompt);
 
@@ -43,7 +44,7 @@ Keep each recommendation concise and focus on the price movement and current mar
         messages: [
           {
             role: 'system',
-            content: 'You are a professional stock market analyst providing clear and concise trading recommendations.',
+            content: 'You are a professional stock market analyst providing clear and concise trading recommendations. Keep responses under 50 words per recommendation.',
           },
           { role: 'user', content: prompt }
         ],
