@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowTrendingUp, ArrowTrendingDown, Minus } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 interface Stock {
   symbol: string;
@@ -46,8 +46,8 @@ export const InvestmentAdvisor = ({ stocks }: InvestmentAdvisorProps) => {
   }, [stocks]);
 
   const getRecommendationIcon = (rec: string) => {
-    if (rec.startsWith('BUY')) return <ArrowTrendingUp className="w-6 h-6 text-green-500" />;
-    if (rec.startsWith('SELL')) return <ArrowTrendingDown className="w-6 h-6 text-red-500" />;
+    if (rec.startsWith('BUY')) return <TrendingUp className="w-6 h-6 text-green-500" />;
+    if (rec.startsWith('SELL')) return <TrendingDown className="w-6 h-6 text-red-500" />;
     return <Minus className="w-6 h-6 text-yellow-500" />;
   };
 
