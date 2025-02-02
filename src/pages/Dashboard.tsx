@@ -19,12 +19,14 @@ import {
   Target,
   ArrowUp,
   ArrowDown,
-  Lightbulb // Newly imported for AI Insights
+  Lightbulb
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useExpenses, useMonthlyExpenses } from "@/hooks/useExpenses";
 import { useMonthlyIncome } from "@/hooks/useIncome";
 import { useFinancialGoals } from "@/hooks/useFinancialGoals";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
@@ -118,6 +120,36 @@ const Dashboard = () => {
   const creditScore = 750;
   const creditScoreColor = getCreditScoreColor(creditScore);
   const creditScoreText = getCreditScoreText(creditScore);
+
+  // Add new state for AI insights
+  const [aiInsights, setAiInsights] = useState<string>("");
+
+  // Add effect to fetch AI insights
+  useEffect(() => {
+    const getAiInsights = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('analyze-finances', {
+          body: { 
+            type: 'insights',
+            expenses: expenses || [],
+            income: incomeData || [],
+            goals: goals || []
+          },
+        });
+
+        if (error) throw error;
+        if (data?.suggestions) {
+          setAiInsights(data.suggestions);
+        }
+      } catch (error) {
+        console.error('Error getting AI insights:', error);
+      }
+    };
+
+    if (expenses || incomeData || goals) {
+      getAiInsights();
+    }
+  }, [expenses, incomeData, goals]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -293,12 +325,26 @@ const Dashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p>Based on your spending patterns, here are some suggestions for improving your financial well-being:</p>
-            <ul className="list-disc pl-5 mt-2">
-              <li>Review your recurring expenses for potential savings opportunities.</li>
-              <li>Consider automating your savings to better achieve your financial goals.</li>
-              <li>Maintain your good credit score by making timely payments.</li>
-            </ul>
+            {aiInsights ? (
+              <div className="space-y-4">
+                <div className="flex items-start gap-4">
+                  <img
+                    src="/lovable-uploads/2cc60c20-704c-4e74-8ef7-0baba9ed0820.png"
+                    alt="AI Advisor"
+                    className="w-12 h-12 rounded-full"
+                  />
+                  <div className="flex-1">
+                    <div className="text-gray-700 space-y-2 whitespace-pre-line">
+                      {aiInsights}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-muted-foreground">
+                Analyzing your financial data to provide personalized insights...
+              </p>
+            )}
           </CardContent>
         </Card>
 

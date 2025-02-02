@@ -1,93 +1,73 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart, ArrowUp, ArrowDown } from "lucide-react";
 import { LineChart as RechartsLineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { InvestmentAdvisor } from "@/components/InvestmentAdvisor";
+import { LineChart } from "lucide-react";
 
 const Investments = () => {
   const { toast } = useToast();
-  
+
+  const generateStockData = (initialPrice: number, volatility: number, trend: number) => {
+    const data = [];
+    let price = initialPrice;
+    
+    for (let i = 0; i < 30; i++) {
+      const random = Math.sin(i / 3) * volatility + trend;
+      price = price + random;
+      if (price < 0) price = 0;
+      
+      data.push({
+        day: i + 1,
+        price: parseFloat(price.toFixed(2))
+      });
+    }
+    
+    return data;
+  };
+
   const stockInvestments = [
     {
-      symbol: "AC",
-      name: "Air Canada",
-      shares: 10,
-      purchasePrice: 19.00,
-      currentPrice: 19.02,
-      change: 0.48,
-      changeAmount: 0.09,
-      data: Array.from({ length: 30 }, (_, i) => ({
-        day: i + 1,
-        price: 19 + Math.sin(i * 0.3) * 0.5
-      }))
+      symbol: "AAPL",
+      name: "Apple Inc.",
+      currentPrice: 180.25,
+      purchasePrice: 150.50,
+      change: 19.77,
+      data: generateStockData(150, 2, 0.5)
     },
     {
       symbol: "TD",
-      name: "Toronto-Dominion Bank",
-      shares: 15,
-      purchasePrice: 82.50,
-      currentPrice: 80.25,
-      change: -2.73,
-      changeAmount: -2.25,
-      data: Array.from({ length: 30 }, (_, i) => ({
-        day: i + 1,
-        price: 82.5 - Math.sin(i * 0.3) * 2.5
-      }))
+      name: "TD Bank",
+      currentPrice: 65.30,
+      purchasePrice: 85.20,
+      change: -23.36,
+      data: generateStockData(85, 3, -0.8)
     },
     {
       symbol: "CNR",
       name: "Canadian National Railway",
-      shares: 8,
-      purchasePrice: 156.75,
-      currentPrice: 159.30,
-      change: 1.63,
-      changeAmount: 2.55,
-      data: Array.from({ length: 30 }, (_, i) => ({
-        day: i + 1,
-        price: 156.75 + Math.sin(i * 0.3) * 3
-      }))
+      currentPrice: 156.75,
+      purchasePrice: 145.30,
+      change: 7.88,
+      data: generateStockData(145, 1.5, 0.3)
     },
     {
       symbol: "BCE",
       name: "BCE Inc.",
-      shares: 25,
-      purchasePrice: 54.20,
-      currentPrice: 52.85,
-      change: -2.49,
-      changeAmount: -1.35,
-      data: Array.from({ length: 30 }, (_, i) => ({
-        day: i + 1,
-        price: 54.20 - Math.cos(i * 0.3) * 1.5
-      }))
+      currentPrice: 62.45,
+      purchasePrice: 58.90,
+      change: 6.03,
+      data: generateStockData(58, 1, 0.2)
     }
   ];
 
   useEffect(() => {
-    // Trigger AI analysis when page loads
-    const analyzeStocks = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke('analyze-finances', {
-          body: { 
-            type: 'stocks',
-            stocks: stockInvestments.map(stock => ({
-              symbol: stock.symbol,
-              currentPrice: stock.currentPrice,
-              purchasePrice: stock.purchasePrice,
-              change: stock.change
-            }))
-          },
-        });
-
-        if (error) throw error;
-      } catch (error) {
-        console.error('Error analyzing stocks:', error);
-      }
-    };
-
-    analyzeStocks();
-  }, []);
+    toast({
+      title: "Investment Portfolio Loaded",
+      description: "Your investment data has been updated.",
+    });
+  }, [toast]);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -98,57 +78,46 @@ const Investments = () => {
       <Card>
         <CardHeader className="flex flex-row items-center space-x-4">
           <LineChart className="w-8 h-8 text-primary" />
-          <CardTitle>Stocks</CardTitle>
+          <div>
+            <CardTitle>Stock Performance</CardTitle>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-6">
-            {stockInvestments.map((stock, index) => (
-              <Card key={index} className="p-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                        {stock.symbol.slice(0, 2)}
-                      </div>
-                      <div>
-                        <h3 className="font-semibold">{stock.symbol}</h3>
-                        <p className="text-sm text-gray-500">{stock.name}</p>
-                      </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {stockInvestments.map((stock) => (
+              <Card key={stock.symbol} className="overflow-hidden">
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <CardTitle className="text-lg">{stock.name}</CardTitle>
+                      <p className="text-sm text-muted-foreground">{stock.symbol}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-semibold">${stock.currentPrice}</p>
+                      <p className={`text-sm ${stock.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {stock.change >= 0 ? '+' : ''}{stock.change}%
+                      </p>
                     </div>
                   </div>
-                  
-                  <div className="h-[100px]">
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[200px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsLineChart data={stock.data}>
-                        <Line 
-                          type="monotone" 
-                          dataKey="price" 
-                          stroke={stock.change >= 0 ? "#22c55e" : "#ef4444"} 
+                        <XAxis dataKey="day" />
+                        <YAxis />
+                        <Tooltip />
+                        <Line
+                          type="monotone"
+                          dataKey="price"
+                          stroke={stock.change >= 0 ? "#16a34a" : "#dc2626"}
+                          strokeWidth={2}
                           dot={false}
                         />
-                        <XAxis dataKey="day" hide />
-                        <YAxis hide domain={['auto', 'auto']} />
-                        <Tooltip />
                       </RechartsLineChart>
                     </ResponsiveContainer>
                   </div>
-
-                  <div className="text-right">
-                    <div className="text-xl font-semibold">
-                      ${stock.currentPrice.toFixed(2)} CAD
-                    </div>
-                    <div className="flex items-center justify-end gap-1 text-sm">
-                      {stock.change >= 0 ? (
-                        <ArrowUp className="w-4 h-4 text-green-500" />
-                      ) : (
-                        <ArrowDown className="w-4 h-4 text-red-500" />
-                      )}
-                      <span className={stock.change >= 0 ? "text-green-500" : "text-red-500"}>
-                        {stock.changeAmount} ({stock.change}%)
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                </CardContent>
               </Card>
             ))}
           </div>
