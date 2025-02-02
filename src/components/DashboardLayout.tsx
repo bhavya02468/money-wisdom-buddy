@@ -77,7 +77,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton onClick={() => navigate("/investment-recommender")}>
+                    <SidebarMenuButton onClick={() => navigate("/add-investment")}>
                       <Coins />
                       <span>Investment Recommender</span>
                     </SidebarMenuButton>
