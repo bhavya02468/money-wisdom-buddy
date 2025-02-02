@@ -1,11 +1,11 @@
-# AI-Powered Financial Wellness Companion
+# AI-Powered Financial Wellness Assistant
 
-An AI-driven financial wellness companion that helps users manage their finances, set financial goals, and receive personalized investment recommendations to improve their financial health.
+An AI-driven financial wellness assistant that is designed to help users manage their money, set financial goals, and receive personalized investment recommendations to improve their financial health.
 
 ## 🚀 Features
 
-- 📊 **Financial Health Analysis** - Get insights into your current financial status.
-- 🎯 **Goal Setting** - Set and track financial goals.
+- 📊 **Financial Health Insights** - Get insights into your current financial status.
+- 🎯 **Goal Setting & Tracking** - Set and track financial goals.
 - 🤖 **AI-Powered Recommendations** - Receive personalized financial and investment strategies.
 - 🔄 **Real-time Data Sync** - Securely connect and update your financial data.
 - 📈 **Investment Planning** - Get tailored investment suggestions based on your profile.
