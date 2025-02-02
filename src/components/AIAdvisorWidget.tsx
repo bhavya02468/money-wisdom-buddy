@@ -18,8 +18,10 @@ export const AIAdvisorWidget = () => {
     },
   ]);
 
-  // Function to get financial suggestions
+  // Function to get financial suggestions - only runs when chat is opened
   const getFinancialSuggestions = async () => {
+    if (!isOpen) return; // Only fetch suggestions when chat is open
+    
     try {
       const user = await supabase.auth.getUser();
       if (!user.data.user) return;
@@ -35,27 +37,18 @@ export const AIAdvisorWidget = () => {
           type: "assistant",
           content: "Based on your recent financial activity, here's a suggestion: " + data.suggestions
         }]);
-
-        // Only show notification if chat is closed
-        if (!isOpen) {
-          toast({
-            title: "New Financial Insight Available",
-            description: "Click to open the chat and view personalized suggestions.",
-            duration: 5000,
-          });
-        }
       }
     } catch (error) {
       console.error('Error getting financial suggestions:', error);
     }
   };
 
-  // Check for suggestions periodically (every 24 hours)
+  // Only fetch suggestions when chat is opened
   useEffect(() => {
-    getFinancialSuggestions();
-    const interval = setInterval(getFinancialSuggestions, 24 * 60 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
+    if (isOpen) {
+      getFinancialSuggestions();
+    }
+  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
