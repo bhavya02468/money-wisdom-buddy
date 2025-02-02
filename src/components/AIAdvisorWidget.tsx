@@ -20,13 +20,6 @@ export const AIAdvisorWidget = () => {
     },
   ]);
 
-  // Auto-open chat on investments page
-  useEffect(() => {
-    if (location.pathname === '/investments' && !isOpen) {
-      setIsOpen(true);
-    }
-  }, [location.pathname]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim() || isLoading) return;

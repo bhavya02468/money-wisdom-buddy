@@ -39,7 +39,7 @@ const Index = () => {
               <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
                 <div>
                   <p className="text-sm text-text-light">Total Balance</p>
-                  <p className="text-2xl font-bold text-primary">$29,316.00</p>
+                  <p className="text-2xl font-bold text-primary">$43,782.00</p>
                 </div>
                 <Wallet className="w-10 h-10 text-primary" />
               </div>
@@ -47,11 +47,11 @@ const Index = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-green-50 rounded-lg">
                   <p className="text-sm text-text-light">Monthly Savings</p>
-                  <p className="text-xl font-semibold text-green-600">$4,976.00</p>
+                  <p className="text-xl font-semibold text-green-600">$8453.00</p>
                 </div>
                 <div className="p-4 bg-red-50 rounded-lg">
                   <p className="text-sm text-text-light">Monthly Expenses</p>
-                  <p className="text-xl font-semibold text-red-500">$2,024.00</p>
+                  <p className="text-xl font-semibold text-red-500">$3,024.00</p>
                 </div>
               </div>
             </div>
@@ -60,7 +60,7 @@ const Index = () => {
       </div>
 
       {/* AI Investment Recommendations Section */}
-      <div className="container mx-auto px-4 py-16 bg-gradient-to-r from-blue-50/50 to-indigo-50/50">
+      <div className="container mx-auto px-4 pt-16 bg-gradient-to-r from-blue-50/50 to-indigo-50/50">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">AI-Powered Investment Insights</h2>
           <p className="text-xl text-text-light">Get personalized investment recommendations based on your risk profile and goals</p>
@@ -70,9 +70,8 @@ const Index = () => {
           <Card className="p-6 hover:shadow-xl transition-all duration-300 bg-white/90">
             <Bot className="w-12 h-12 text-primary mb-4" />
             <h3 className="text-xl font-semibold mb-2">Smart Portfolio Analysis</h3>
-            <p className="text-text-light mb-4">AI-driven insights to optimize your investment portfolio</p>
+            <p className="text-text-light mb-4">AI-driven insights to optimize your investments</p>
             <div className="flex items-center text-primary hover:text-primary-dark cursor-pointer">
-              Learn More <ArrowRight className="ml-2 w-4 h-4" />
             </div>
           </Card>
 
@@ -81,7 +80,6 @@ const Index = () => {
             <h3 className="text-xl font-semibold mb-2">Risk Assessment</h3>
             <p className="text-text-light mb-4">Personalized risk analysis and investment strategies</p>
             <div className="flex items-center text-primary hover:text-primary-dark cursor-pointer">
-              Learn More <ArrowRight className="ml-2 w-4 h-4" />
             </div>
           </Card>
 
@@ -90,7 +88,6 @@ const Index = () => {
             <h3 className="text-xl font-semibold mb-2">Market Trends</h3>
             <p className="text-text-light mb-4">Real-time market analysis and trend predictions</p>
             <div className="flex items-center text-primary hover:text-primary-dark cursor-pointer">
-              Learn More <ArrowRight className="ml-2 w-4 h-4" />
             </div>
           </Card>
         </div>
@@ -117,24 +114,6 @@ const Index = () => {
             </Card>
           ))}
         </div>
-      </div>
-
-      {/* Call to Action */}
-      <div className="container mx-auto px-4 py-16">
-        <Card className="p-8 bg-primary/5 border-none">
-          <div className="text-center space-y-6">
-            <h2 className="text-3xl font-bold">Ready to Take Control of Your Finances?</h2>
-            <p className="text-xl text-text-light max-w-2xl mx-auto">
-              Join thousands of users who are already making smarter financial decisions with FinWise.
-            </p>
-            <Button 
-              className="bg-primary hover:bg-primary-dark text-white px-8 py-6 text-lg rounded-lg"
-              onClick={() => navigate("/auth")}
-            >
-              Start Your Journey <ArrowRight className="ml-2" />
-            </Button>
-          </div>
-        </Card>
       </div>
     </div>
   );

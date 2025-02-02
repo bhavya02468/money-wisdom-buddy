@@ -120,9 +120,13 @@ const Investments = () => {
   }, []);
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <h1 className="text-3xl font-bold mb-8">Investment Portfolio</h1>
-      
+    <div className="container mx-auto px-4 py-8 space-y-8 bg-gradient-to-br from-background to-surface">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+          Investment Portfolio
+        </h1>
+      </div>
+
       <InvestmentAdvisor stocks={stockInvestments} />
       
       {/* Portfolio Overview Card */}

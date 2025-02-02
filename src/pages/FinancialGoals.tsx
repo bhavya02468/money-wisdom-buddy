@@ -1,17 +1,15 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useFinancialGoals } from "@/hooks/useFinancialGoals";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/components/ui/use-toast";
-import { Target, Plus, Trash2 } from "lucide-react";
+import { Target, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
 const FinancialGoals = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: goals } = useFinancialGoals();
@@ -109,19 +107,20 @@ const FinancialGoals = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 space-y-8 bg-gradient-to-br from-background to-surface">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Financial Goals</h1>
+        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+          Financial Goals
+        </h1>
       </div>
 
-      {/* Flex container: stacks on small screens; two columns on large screens */}
+
       <div className="flex flex-col lg:flex-row gap-8">
-        {/* Left Column: Add New Goal */}
         <div className="lg:w-1/2">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Plus className="w-5 h-5" />
+                <Target className="w-5 h-5" />
                 Add New Goal
               </CardTitle>
             </CardHeader>
@@ -227,7 +226,7 @@ const FinancialGoals = () => {
             ))
           ) : (
             <Card>
-              <CardContent className="p-8 text-center">
+              <CardContent className="pt-24 text-center">
                 <Target className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                 <p className="text-lg font-medium mb-2">No Financial Goals Yet</p>
                 <p className="text-sm text-gray-500">

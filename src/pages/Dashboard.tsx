@@ -22,6 +22,7 @@ import {
   ArrowUp,
   ArrowDown,
   Lightbulb,
+  DollarSign,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useExpenses, useMonthlyExpenses } from "@/hooks/useExpenses";
@@ -92,7 +93,9 @@ const Dashboard = () => {
   const EmptyState = () => (
     <div className="flex flex-col items-center justify-center p-8 text-center">
       <p className="text-lg text-gray-500 mb-4">No data available</p>
-      <p className="text-sm text-gray-400">Start by adding some income or expenses</p>
+      <p className="text-sm text-gray-400">
+        Start by adding some income or expenses
+      </p>
     </div>
   );
 
@@ -116,8 +119,12 @@ const Dashboard = () => {
         100
       : 0;
 
+    const saving = (lineChartData[lineChartData.length - 1].balance -
+      lineChartData[lineChartData.length - 2].balance);
+
   // Calculate a balance change indicator based on current month’s balance vs. total.
-  const balanceChange = ((lineChartData[lineChartData.length - 1]?.balance) / totalBalance) * 100;
+  const balanceChange =
+    (lineChartData[lineChartData.length - 1]?.balance / totalBalance) * 100;
 
   /**
    * Renders an arrow indicator for a given percentage change.
@@ -170,15 +177,18 @@ const Dashboard = () => {
         }
 
         // Invoke the serverless function to analyze finances.
-        const { data, error } = await supabase.functions.invoke("analyze-finances", {
-          body: {
-            type: "insights",
-            userId: user.id,
-            expenses: expenses || [],
-            income: incomeData || [],
-            goals: goals || [],
-          },
-        });
+        const { data, error } = await supabase.functions.invoke(
+          "analyze-finances",
+          {
+            body: {
+              type: "insights",
+              userId: user.id,
+              expenses: expenses || [],
+              income: incomeData || [],
+              goals: goals || [],
+            },
+          }
+        );
 
         if (error) {
           toast({
@@ -244,15 +254,24 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-text-light">Credit Score</p>
-                <p className="text-2xl font-semibold" style={{ color: creditScoreColor }}>
+                <p
+                  className="text-2xl font-semibold"
+                  style={{ color: creditScoreColor }}
+                >
                   {creditScore}
                 </p>
                 <p className="text-sm" style={{ color: creditScoreColor }}>
                   {creditScoreText}
                 </p>
               </div>
-              <div className="p-3 rounded-full" style={{ backgroundColor: `${creditScoreColor}20` }}>
-                <Award className="w-8 h-8" style={{ color: creditScoreColor }} />
+              <div
+                className="p-3 rounded-full"
+                style={{ backgroundColor: `${creditScoreColor}20` }}
+              >
+                <Award
+                  className="w-8 h-8"
+                  style={{ color: creditScoreColor }}
+                />
               </div>
             </div>
           </CardContent>
@@ -338,8 +357,12 @@ const Dashboard = () => {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center p-8 text-center animate-fade-in">
-                <p className="text-lg text-gray-500 mb-4">No data available yet</p>
-                <p className="text-sm text-gray-400">Start by adding some transactions</p>
+                <p className="text-lg text-gray-500 mb-4">
+                  No data available yet
+                </p>
+                <p className="text-sm text-gray-400">
+                  Start by adding some transactions
+                </p>
               </div>
             )}
           </CardContent>
@@ -378,15 +401,22 @@ const Dashboard = () => {
                       ))}
                     </Pie>
                     <Tooltip
-                      formatter={(value: number) => [`$${value.toFixed(2)}`, "Amount"]}
+                      formatter={(value: number) => [
+                        `$${value.toFixed(2)}`,
+                        "Amount",
+                      ]}
                     />
                   </PieChart>
                 </ChartContainer>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center p-8 text-center animate-fade-in">
-                <p className="text-lg text-gray-500 mb-4">No expense data available</p>
-                <p className="text-sm text-gray-400">Start by adding some expenses</p>
+                <p className="text-lg text-gray-500 mb-4">
+                  No expense data available
+                </p>
+                <p className="text-sm text-gray-400">
+                  Start by adding some expenses
+                </p>
               </div>
             )}
           </CardContent>
@@ -446,7 +476,9 @@ const Dashboard = () => {
             ) : (
               <div className="flex flex-col items-center justify-center p-8 text-center animate-fade-in">
                 <p className="text-lg text-gray-500 mb-4">No goals set yet</p>
-                <p className="text-sm text-gray-400">Start by setting a financial goal</p>
+                <p className="text-sm text-gray-400">
+                  Start by setting a financial goal
+                </p>
               </div>
             )}
           </CardContent>
@@ -461,19 +493,34 @@ const Dashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-center p-6 bg-gradient-to-br from-primary/5 to-transparent rounded-lg">
+            <div className="flex justify-between p-6 bg-gradient-to-br from-primary/5 to-transparent rounded-lg">
               <div
                 className={`text-4xl font-bold mb-2 ${
                   monthlySavings > 0 ? "text-green-500" : "text-red-500"
                 }`}
               >
                 {monthlySavings > 0 ? "Good" : "Needs Attention"}
+                <p className="text-sm pt-2 text-text-light">
+                  {monthlySavings > 0
+                    ? "You're saving money this month!"
+                    : "Your expenses exceed your income this month"}
+                </p>
               </div>
-              <p className="text-sm text-text-light">
-                {monthlySavings > 0
-                  ? "You're saving money this month!"
-                  : "Your expenses exceed your income this month"}
-              </p>
+
+              <Card>
+                <CardContent className="p-3 bg-white rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-text-light">
+                        Additional Savings
+                      </p>
+                      <p className={`text-2xl text-center font-semibold ${saving > 0 ? "text-green-500" : "text-red-500"}`}>
+                        ${saving}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </CardContent>
         </Card>

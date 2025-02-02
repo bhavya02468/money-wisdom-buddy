@@ -41,6 +41,13 @@ const Auth = () => {
           password,
         });
         if (error) throw error;
+
+        const { data: userData, error: userError } = await supabase
+        .from("profiles") // Ensure you have a `profiles` table
+        .select("full_name")
+        .single();
+        localStorage.setItem("fullName", userData.full_name);
+
         navigate("/dashboard");
       }
     } catch (error: any) {

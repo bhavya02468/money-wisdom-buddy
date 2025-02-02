@@ -111,8 +111,7 @@ export const TransactionHistory = ({
   };
 
   return (
-    <div className="mt-8">
-      <h2 className="text-xl font-semibold mb-4">Transaction History</h2>
+    <div>
       <Table>
         <TableHeader>
           <TableRow>
