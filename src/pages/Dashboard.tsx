@@ -168,10 +168,6 @@ const Dashboard = () => {
         if (data?.suggestions) {
           setAiInsights(data.suggestions);
           insightsGeneratedRef.current = true;
-          toast({
-            title: "Success",
-            description: "Financial insights updated",
-          });
         }
       } catch (error) {
         console.error('Error getting AI insights:', error);
