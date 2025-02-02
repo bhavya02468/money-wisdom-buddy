@@ -12,44 +12,36 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
+import { StockInsights } from "@/components/StockInsights";
 
 const Investments = () => {
   const [stockData, setStockData] = useState([
-    { name: "Jan", AAPL: 4000, GOOGL: 2400, MSFT: 2400 },
-    { name: "Feb", AAPL: 3000, GOOGL: 1398, MSFT: 2210 },
-    { name: "Mar", AAPL: 2000, GOOGL: 9800, MSFT: 2290 },
-    { name: "Apr", AAPL: 2780, GOOGL: 3908, MSFT: 2000 },
-    { name: "May", AAPL: 1890, GOOGL: 4800, MSFT: 2181 },
-    { name: "Jun", AAPL: 2390, GOOGL: 3800, MSFT: 2500 },
+    { name: "Jan", AAPL: 4000, GOOGL: 2400, MSFT: 2210, AMZN: 3200 },
+    { name: "Feb", AAPL: 3000, GOOGL: 1398, MSFT: 2210, AMZN: 3400 },
+    { name: "Mar", AAPL: 2000, GOOGL: 9800, MSFT: 2290, AMZN: 3100 },
+    { name: "Apr", AAPL: 2780, GOOGL: 3908, MSFT: 2000, AMZN: 3300 },
+    { name: "May", AAPL: 1890, GOOGL: 4800, MSFT: 2181, AMZN: 3500 },
+    { name: "Jun", AAPL: 2390, GOOGL: 3800, MSFT: 2500, AMZN: 3600 },
   ]);
+
+  const stocks = [
+    { symbol: "AAPL", currentPrice: 182.52, purchasePrice: 170.25, change: 7.21, name: "Apple Inc." },
+    { symbol: "GOOGL", currentPrice: 142.38, purchasePrice: 130.45, change: 9.14, name: "Alphabet Inc." },
+    { symbol: "MSFT", currentPrice: 403.78, purchasePrice: 380.12, change: 6.22, name: "Microsoft Corp." },
+    { symbol: "AMZN", currentPrice: 171.81, purchasePrice: 155.50, change: 10.49, name: "Amazon.com Inc." },
+  ];
 
   const [insights, setInsights] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchInsights = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error("No user found");
-
-        const response = await supabase.functions.invoke("analyze-finances", {
-          body: {
-            type: "stocks",
-            userId: user.id,
-          },
-        });
-
-        if (response.error) throw response.error;
-        setInsights(response.data.insights || "No insights available at the moment.");
-      } catch (error) {
-        console.error("Error fetching insights:", error);
-        setInsights("Unable to fetch insights at this time.");
-      } finally {
-        setLoading(false);
+    // This will trigger the AI chat widget to open
+    const event = new CustomEvent("openAIChat", {
+      detail: {
+        message: "I notice you're looking at your investments. Would you like me to analyze your current stock portfolio and provide recommendations for each stock?"
       }
-    };
-
-    fetchInsights();
+    });
+    window.dispatchEvent(event);
   }, []);
 
   return (
@@ -57,21 +49,7 @@ const Investments = () => {
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">Investment Portfolio</h1>
         
-        {/* Stock Insights Card */}
-        <Card className="p-6 mb-8 bg-white shadow-lg">
-          <h2 className="text-xl font-semibold mb-4">Stock Market Insights</h2>
-          <div className="text-gray-700">
-            {loading ? (
-              <p>Loading insights...</p>
-            ) : (
-              <div className="prose max-w-none">
-                {insights.split('\n').map((line, index) => (
-                  <p key={index}>{line}</p>
-                ))}
-              </div>
-            )}
-          </div>
-        </Card>
+        <StockInsights stocks={stocks} />
 
         {/* Stock Performance Chart */}
         <Card className="p-6 bg-white shadow-lg">
@@ -100,6 +78,7 @@ const Investments = () => {
                 />
                 <Line type="monotone" dataKey="GOOGL" stroke="#82ca9d" />
                 <Line type="monotone" dataKey="MSFT" stroke="#ffc658" />
+                <Line type="monotone" dataKey="AMZN" stroke="#ff7300" />
               </LineChart>
             </ResponsiveContainer>
           </div>

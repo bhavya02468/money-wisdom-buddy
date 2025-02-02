@@ -23,7 +23,6 @@ export const StockInsights = ({ stocks }: StockInsightsProps) => {
       if (insightsGeneratedRef.current) return;
 
       try {
-        // First get the current user
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {
@@ -34,12 +33,13 @@ export const StockInsights = ({ stocks }: StockInsightsProps) => {
         const { data, error } = await supabase.functions.invoke('analyze-finances', {
           body: { 
             type: 'stocks',
-            userId: user.id,  // Add the user ID to the request
+            userId: user.id,
             stocks: stocks.map(stock => ({
               symbol: stock.symbol,
               currentPrice: stock.currentPrice,
               purchasePrice: stock.purchasePrice,
-              change: stock.change
+              change: stock.change,
+              name: stock.name
             }))
           },
         });
@@ -60,7 +60,7 @@ export const StockInsights = ({ stocks }: StockInsightsProps) => {
   if (!advice) return null;
 
   return (
-    <Card className="p-6 mb-8 bg-gradient-to-r from-blue-50 to-indigo-50">
+    <Card className="p-6 mb-8 bg-white shadow-lg">
       <div className="flex items-start gap-4">
         <img
           src="/lovable-uploads/2cc60c20-704c-4e74-8ef7-0baba9ed0820.png"

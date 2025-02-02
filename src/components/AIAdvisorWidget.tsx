@@ -22,9 +22,23 @@ export const AIAdvisorWidget = () => {
   };
 
   useEffect(() => {
+    const handleAIChat = (event: CustomEvent) => {
+      setIsOpen(true);
+      setChatHistory(prev => [...prev, { 
+        type: "assistant", 
+        content: event.detail.message 
+      }]);
+    };
+
+    window.addEventListener('openAIChat', handleAIChat as EventListener);
+    
     if (location.pathname === "/investments") {
       setIsOpen(true);
     }
+
+    return () => {
+      window.removeEventListener('openAIChat', handleAIChat as EventListener);
+    };
   }, [location]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,7 +84,7 @@ export const AIAdvisorWidget = () => {
   return (
     <div className="fixed bottom-4 right-4 z-50">
       {isOpen ? (
-        <Card className="w-80 p-4 shadow-lg bg-background border">
+        <Card className="w-80 p-4 shadow-lg bg-white border">
           <div className="flex justify-between items-start mb-4">
             <div className="flex items-center gap-2">
               <img
@@ -89,7 +103,7 @@ export const AIAdvisorWidget = () => {
               <X className="h-4 w-4" />
             </Button>
           </div>
-          <div className="space-y-4 h-[300px] overflow-y-auto mb-4 bg-background">
+          <div className="space-y-4 h-[300px] overflow-y-auto mb-4 bg-white">
             {chatHistory.map((msg, index) => (
               <div
                 key={index}
@@ -124,7 +138,7 @@ export const AIAdvisorWidget = () => {
       ) : (
         <Button
           onClick={toggleWidget}
-          className="rounded-full h-12 w-12 shadow-lg"
+          className="rounded-full h-12 w-12 shadow-lg bg-white"
         >
           <MessageCircle className="h-6 w-6" />
         </Button>
