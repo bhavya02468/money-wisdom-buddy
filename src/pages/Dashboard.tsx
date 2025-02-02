@@ -185,29 +185,33 @@ const Dashboard = () => {
   }, [expenses, incomeData, goals, toast, navigate]);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 space-y-8 bg-gradient-to-br from-background to-surface">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Financial Dashboard</h1>
+        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+          Financial Dashboard
+        </h1>
       </div>
 
       {/* Top summary cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-white to-gray-50">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-text-light">Total Balance</p>
-                <p className="text-2xl font-semibold">
+                <p className="text-2xl font-semibold text-primary">
                   ${totalBalance.toFixed(2)}
                   {getChangeIndicator(balanceChange)}
                 </p>
               </div>
-              <Wallet className="w-8 h-8 text-primary" />
+              <div className="p-3 rounded-full bg-primary/10">
+                <Wallet className="w-8 h-8 text-primary" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-white to-gray-50">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -217,37 +221,43 @@ const Dashboard = () => {
                 </p>
                 <p className="text-sm" style={{ color: creditScoreColor }}>{creditScoreText}</p>
               </div>
-              <Award className="w-8 h-8" style={{ color: creditScoreColor }} />
+              <div className="p-3 rounded-full" style={{ backgroundColor: `${creditScoreColor}20` }}>
+                <Award className="w-8 h-8" style={{ color: creditScoreColor }} />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-white to-gray-50">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-text-light">Monthly Savings</p>
-                <p className="text-2xl font-semibold">
+                <p className="text-2xl font-semibold text-accent">
                   ${monthlySavings.toFixed(2)}
                   {getChangeIndicator(expenseData[0]?.change || 0)}
                 </p>
               </div>
-              <PiggyBank className="w-8 h-8 text-accent" />
+              <div className="p-3 rounded-full bg-accent/10">
+                <PiggyBank className="w-8 h-8 text-accent" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-white to-gray-50">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-text-light">Monthly Expenses</p>
-                <p className="text-2xl font-semibold">
+                <p className="text-2xl font-semibold text-red-500">
                   ${currentMonthExpense.toFixed(2)}
                   {getChangeIndicator(expenseData[0]?.change || 0)}
                 </p>
               </div>
-              <CreditCard className="w-8 h-8 text-red-500" />
+              <div className="p-3 rounded-full bg-red-500/10">
+                <CreditCard className="w-8 h-8 text-red-500" />
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -255,9 +265,9 @@ const Dashboard = () => {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300">
           <CardHeader>
-            <CardTitle>Balance & Expenses Trend</CardTitle>
+            <CardTitle className="text-lg font-semibold text-primary">Balance & Expenses Trend</CardTitle>
           </CardHeader>
           <CardContent>
             {lineChartData.length > 0 ? (
@@ -270,20 +280,37 @@ const Dashboard = () => {
                     <XAxis dataKey="month" />
                     <YAxis />
                     <ChartTooltip />
-                    <Line type="monotone" dataKey="balance" stroke="var(--color-balance)" name="Balance" />
-                    <Line type="monotone" dataKey="expense" stroke="var(--color-expense)" name="Expenses" />
+                    <Line 
+                      type="monotone" 
+                      dataKey="balance" 
+                      stroke="var(--color-balance)" 
+                      strokeWidth={2}
+                      dot={{ strokeWidth: 2 }}
+                      name="Balance" 
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="expense" 
+                      stroke="var(--color-expense)" 
+                      strokeWidth={2}
+                      dot={{ strokeWidth: 2 }}
+                      name="Expenses" 
+                    />
                   </LineChart>
                 </ChartContainer>
               </div>
             ) : (
-              <EmptyState />
+              <div className="flex flex-col items-center justify-center p-8 text-center animate-fade-in">
+                <p className="text-lg text-gray-500 mb-4">No data available yet</p>
+                <p className="text-sm text-gray-400">Start by adding some transactions</p>
+              </div>
             )}
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300">
           <CardHeader>
-            <CardTitle>Expenses by Category</CardTitle>
+            <CardTitle className="text-lg font-semibold text-primary">Expenses by Category</CardTitle>
           </CardHeader>
           <CardContent>
             {spendingByCategory.length > 0 ? (
@@ -294,8 +321,8 @@ const Dashboard = () => {
                       data={spendingByCategory}
                       cx="50%"
                       cy="50%"
-                      innerRadius={0}
-                      outerRadius={100}
+                      innerRadius={60}
+                      outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
                       nameKey="name"
@@ -315,7 +342,7 @@ const Dashboard = () => {
                 </ChartContainer>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center p-8 text-center">
+              <div className="flex flex-col items-center justify-center p-8 text-center animate-fade-in">
                 <p className="text-lg text-gray-500 mb-4">No expense data available</p>
                 <p className="text-sm text-gray-400">Start by adding some expenses</p>
               </div>
@@ -324,35 +351,33 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Bottom cards: Financial Goal Progress, Financial Health Score, Recurring Expenses, and AI Insights */}
+      {/* Bottom cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RecurringExpenses />
-
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-lg font-semibold text-primary">
               <Lightbulb className="w-5 h-5" />
               AI Insights
             </CardTitle>
           </CardHeader>
           <CardContent>
             {aiInsights ? (
-              <div className="space-y-4">
-                <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-line">
+              <div className="space-y-4 p-4 bg-gradient-to-br from-primary/5 to-transparent rounded-lg">
+                <p className="text-sm leading-relaxed text-text whitespace-pre-line">
                   {aiInsights}
                 </p>
               </div>
             ) : (
-              <div className="text-center text-muted-foreground">
+              <div className="text-center text-text-light animate-pulse">
                 Generating insights...
               </div>
             )}
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-lg font-semibold text-primary">
               <Target className="w-5 h-5" />
               Financial Goal Progress
             </CardTitle>
@@ -360,35 +385,38 @@ const Dashboard = () => {
           <CardContent>
             {primaryGoal ? (
               <div className="space-y-4">
-                <h3 className="font-medium">{primaryGoal.name}</h3>
+                <h3 className="font-medium text-text">{primaryGoal.name}</h3>
                 <Progress value={goalProgress} className="h-2" />
-                <div className="flex justify-between text-sm text-muted-foreground">
+                <div className="flex justify-between text-sm text-text-light">
                   <span>${primaryGoal.current_amount.toFixed(2)}</span>
                   <span>${primaryGoal.target_amount.toFixed(2)}</span>
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-text-light bg-accent/10 p-3 rounded-lg">
                   You're {goalProgress.toFixed(1)}% of the way to your goal
                 </p>
               </div>
             ) : (
-              <EmptyState />
+              <div className="flex flex-col items-center justify-center p-8 text-center animate-fade-in">
+                <p className="text-lg text-gray-500 mb-4">No goals set yet</p>
+                <p className="text-sm text-gray-400">Start by setting a financial goal</p>
+              </div>
             )}
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-lg font-semibold text-primary">
               <Shield className="w-5 h-5" />
               Financial Health Score
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-primary mb-2">
+            <div className="text-center p-6 bg-gradient-to-br from-primary/5 to-transparent rounded-lg">
+              <div className={`text-4xl font-bold mb-2 ${monthlySavings > 0 ? 'text-green-500' : 'text-red-500'}`}>
                 {monthlySavings > 0 ? "Good" : "Needs Attention"}
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-text-light">
                 {monthlySavings > 0
                   ? "You're saving money this month!"
                   : "Your expenses exceed your income this month"}
@@ -396,6 +424,8 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
+
+        <RecurringExpenses />
       </div>
     </div>
   );
