@@ -60,7 +60,7 @@ const Dashboard = () => {
   const insightsGeneratedRef = useRef(false);
 
   // Calculate current month totals
-  const currentMonthExpense = expenseData[0]?.amount || 0;
+  const currentMonthExpense = expenseData[expenseData.length-1]?.amount || 0;
   const currentMonthIncome = incomeData[0]?.amount || 0;
   const monthlySavings = currentMonthIncome - currentMonthExpense;
 
@@ -79,17 +79,6 @@ const Dashboard = () => {
       <p className="text-sm text-gray-400">Start by adding some income or expenses</p>
     </div>
   );
-
-  // Filter for last month's recurring expenses
-  const currentDate = new Date();
-  const lastMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1);
-  
-  const recurringExpenses = expenses?.filter((expense) => {
-    const expenseDate = new Date(expense.date);
-    return expense.is_recurring && 
-           expenseDate.getMonth() === lastMonth.getMonth() &&
-           expenseDate.getFullYear() === lastMonth.getFullYear();
-  }) || [];
   
   // Prepare data for line chart (last 6 months)
   const lineChartData = expenseData.slice(0, 6).map((expense, index) => {
@@ -102,10 +91,10 @@ const Dashboard = () => {
     };
   });
 
-  const previousMonthBalance = lineChartData[1]?.balance;
-  const balanceChange = previousMonthBalance
-    ? ((totalBalance - previousMonthBalance) / previousMonthBalance) * 100
-    : 0;
+  const monthlySavingsChange = ((lineChartData[lineChartData.length - 1].balance - lineChartData[lineChartData.length - 2].balance)/lineChartData[lineChartData.length - 1].balance)*100;
+  console.log("Expense: ", lineChartData);
+
+  const balanceChange = ((lineChartData[lineChartData.length - 1]?.balance)/totalBalance) * 100;
 
   const getChangeIndicator = (change: number) => {
     if (change === 0) return null;
@@ -235,7 +224,7 @@ const Dashboard = () => {
                 <p className="text-sm text-text-light">Monthly Savings</p>
                 <p className="text-2xl font-semibold text-accent">
                   ${monthlySavings.toFixed(2)}
-                  {getChangeIndicator(expenseData[0]?.change || 0)}
+                  {getChangeIndicator(monthlySavingsChange)}
                 </p>
               </div>
               <div className="p-3 rounded-full bg-accent/10">
@@ -375,6 +364,8 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
+        <RecurringExpenses />
+
         <Card className="hover:shadow-lg transition-all duration-300">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg font-semibold text-primary">
@@ -424,8 +415,6 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
-
-        <RecurringExpenses />
       </div>
     </div>
   );
