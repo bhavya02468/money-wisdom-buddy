@@ -9,7 +9,6 @@ import {
   Pie,
   Cell,
   Tooltip,
-  Legend,
 } from "recharts";
 import {
   Wallet,
@@ -20,12 +19,12 @@ import {
   Target,
   ArrowUp,
   ArrowDown,
+  Lightbulb // Newly imported for AI Insights
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { useMonthlyExpenses } from "@/hooks/useExpenses";
+import { useExpenses, useMonthlyExpenses } from "@/hooks/useExpenses";
 import { useMonthlyIncome } from "@/hooks/useIncome";
 import { useFinancialGoals } from "@/hooks/useFinancialGoals";
-import { RecurringExpenses } from "@/components/RecurringExpenses";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
@@ -70,6 +69,19 @@ const Dashboard = () => {
       <p className="text-sm text-gray-400">Start by adding some income or expenses</p>
     </div>
   );
+
+  const { data: expenses } = useExpenses();
+  
+  // Filter for last month's recurring expenses
+  const currentDate = new Date();
+  const lastMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1);
+  
+  const recurringExpenses = expenses?.filter((expense) => {
+    const expenseDate = new Date(expense.date);
+    return expense.is_recurring && 
+           expenseDate.getMonth() === lastMonth.getMonth() &&
+           expenseDate.getFullYear() === lastMonth.getFullYear();
+  }) || [];
   
   // Prepare data for line chart (last 6 months)
   const lineChartData = expenseData.slice(0, 6).map((expense, index) => {
@@ -81,6 +93,11 @@ const Dashboard = () => {
       balance: balance
     };
   });
+
+  const previousMonthBalance = lineChartData[1]?.balance;
+  const balanceChange = previousMonthBalance
+    ? ((totalBalance - previousMonthBalance) / previousMonthBalance) * 100
+    : 0;
 
   const getChangeIndicator = (change: number) => {
     if (change === 0) return null;
@@ -108,6 +125,7 @@ const Dashboard = () => {
         <h1 className="text-3xl font-bold">Financial Dashboard</h1>
       </div>
 
+      {/* Top summary cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card className="hover:shadow-lg transition-shadow">
           <CardContent className="p-6">
@@ -116,7 +134,7 @@ const Dashboard = () => {
                 <p className="text-sm text-text-light">Total Balance</p>
                 <p className="text-2xl font-semibold">
                   ${totalBalance.toFixed(2)}
-                  {getChangeIndicator(expenseData[0]?.change || 0)}
+                  {getChangeIndicator(balanceChange)}
                 </p>
               </div>
               <Wallet className="w-8 h-8 text-primary" />
@@ -170,6 +188,7 @@ const Dashboard = () => {
         </Card>
       </div>
 
+      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <Card>
           <CardHeader>
@@ -240,7 +259,49 @@ const Dashboard = () => {
         </Card>
       </div>
 
+      {/* Bottom cards: Financial Goal Progress, Financial Health Score, Recurring Expenses, and AI Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Recurring Expenses</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {recurringExpenses.map((expense) => (
+                <div
+                  key={expense.id}
+                  className="flex items-center justify-between p-2 rounded-lg bg-secondary/10"
+                >
+                  <div>
+                    <p className="font-medium">{expense.description}</p>
+                    <p className="text-sm text-muted-foreground">{expense.category}</p>
+                  </div>
+                  <p className="font-medium text-red-500">
+                    -${expense.amount.toFixed(2)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Lightbulb className="w-5 h-5" />
+              AI Insights
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>Based on your spending patterns, here are some suggestions for improving your financial well-being:</p>
+            <ul className="list-disc pl-5 mt-2">
+              <li>Review your recurring expenses for potential savings opportunities.</li>
+              <li>Consider automating your savings to better achieve your financial goals.</li>
+              <li>Maintain your good credit score by making timely payments.</li>
+            </ul>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -287,10 +348,6 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
-
-        <div className="lg:col-span-2">
-          <RecurringExpenses />
-        </div>
       </div>
     </div>
   );
