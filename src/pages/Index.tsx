@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowRight, PieChart, Wallet, Target, Brain, TrendingUp, DollarSign, ChartLineUp, Robot, ArrowUpRight } from "lucide-react";
+import { ArrowRight, PieChart, Wallet, Target, Brain, TrendingUp, DollarSign, ChartLine, Bot, ArrowUpRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Index = () => {
@@ -68,7 +68,7 @@ const Index = () => {
         
         <div className="grid md:grid-cols-3 gap-8">
           <Card className="p-6 hover:shadow-xl transition-all duration-300 bg-white/90">
-            <Robot className="w-12 h-12 text-primary mb-4" />
+            <Bot className="w-12 h-12 text-primary mb-4" />
             <h3 className="text-xl font-semibold mb-2">Smart Portfolio Analysis</h3>
             <p className="text-text-light mb-4">AI-driven insights to optimize your investment portfolio</p>
             <div className="flex items-center text-primary hover:text-primary-dark cursor-pointer">
@@ -86,7 +86,7 @@ const Index = () => {
           </Card>
 
           <Card className="p-6 hover:shadow-xl transition-all duration-300 bg-white/90">
-            <ChartLineUp className="w-12 h-12 text-accent mb-4" />
+            <ChartLine className="w-12 h-12 text-accent mb-4" />
             <h3 className="text-xl font-semibold mb-2">Market Trends</h3>
             <p className="text-text-light mb-4">Real-time market analysis and trend predictions</p>
             <div className="flex items-center text-primary hover:text-primary-dark cursor-pointer">
