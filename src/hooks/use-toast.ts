@@ -1,5 +1,4 @@
 import * as React from "react"
-
 import type {
   ToastActionElement,
   ToastProps,
@@ -90,8 +89,6 @@ export const reducer = (state: State, action: Action): State => {
     case "DISMISS_TOAST": {
       const { toastId } = action
 
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
       if (toastId) {
         addToRemoveQueue(toastId)
       } else {
@@ -166,6 +163,22 @@ function toast({ ...props }: Toast) {
     dismiss,
     update,
   }
+}
+
+export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [state, setState] = React.useState<State>(memoryState)
+
+  React.useEffect(() => {
+    listeners.push(setState)
+    return () => {
+      const index = listeners.indexOf(setState)
+      if (index > -1) {
+        listeners.splice(index, 1)
+      }
+    }
+  }, [state])
+
+  return children
 }
 
 function useToast() {

@@ -14,12 +14,12 @@ const AddInvestment = () => {
   const { toast } = useToast();
   const [type, setType] = useState<"property" | "stocks" | "">("");
   const [amount, setAmount] = useState("");
-  const { monthlyData: expenseData } = useExpenses();
-  const { monthlyData: incomeData } = useMonthlyIncome();
+  const { data: expenses } = useExpenses();
+  const { data: income } = useMonthlyIncome();
 
-  // Calculate total balance
-  const totalIncome = incomeData.reduce((sum, item) => sum + item.amount, 0);
-  const totalExpenses = expenseData.reduce((sum, item) => sum + item.amount, 0);
+  // Calculate total balance from raw data
+  const totalIncome = (income || []).reduce((sum, item) => sum + item.amount, 0);
+  const totalExpenses = (expenses || []).reduce((sum, item) => sum + item.amount, 0);
   const totalBalance = totalIncome - totalExpenses;
   const suggestedAmount = totalBalance / 2;
 

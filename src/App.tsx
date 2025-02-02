@@ -4,6 +4,7 @@ import Investments from "@/pages/Investments";
 import AddInvestment from "@/pages/AddInvestment";
 import { ToastProvider } from "@/hooks/use-toast";
 import { useToast } from "@/hooks/use-toast";
+import DashboardLayout from "@/components/DashboardLayout";
 
 function App() {
   return (
