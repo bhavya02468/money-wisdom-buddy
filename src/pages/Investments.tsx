@@ -1,14 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart, ArrowUp, ArrowDown, TrendingUp, Brain } from "lucide-react";
+import { LineChart, ArrowUp, ArrowDown } from "lucide-react";
 import { LineChart as RechartsLineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { InvestmentAdvisor } from "@/components/InvestmentAdvisor";
 
 const Investments = () => {
   const { toast } = useToast();
-  const [aiSuggestion, setAiSuggestion] = useState("");
   
   const stockInvestments = [
     {
@@ -21,7 +20,7 @@ const Investments = () => {
       changeAmount: 6.02,
       data: Array.from({ length: 30 }, (_, i) => ({
         day: i + 1,
-        price: 19 + Math.sin(i * 0.4) * 8 + (i * 0.2)
+        price: 19 + Math.sin(i * 0.4) * 8 + (i * 0.2) // Dramatic upward trend
       }))
     },
     {
@@ -34,7 +33,7 @@ const Investments = () => {
       changeAmount: -17.25,
       data: Array.from({ length: 30 }, (_, i) => ({
         day: i + 1,
-        price: 82.5 - Math.sin(i * 0.3) * 10 - (i * 0.3)
+        price: 82.5 - Math.sin(i * 0.3) * 10 - (i * 0.3) // Dramatic downward trend
       }))
     },
     {
@@ -47,12 +46,25 @@ const Investments = () => {
       changeAmount: 32.55,
       data: Array.from({ length: 30 }, (_, i) => ({
         day: i + 1,
-        price: 156.75 + Math.cos(i * 0.2) * 15 + (i * 0.8)
+        price: 156.75 + Math.cos(i * 0.2) * 15 + (i * 0.8) // Strong upward trend
+      }))
+    },
+    {
+      symbol: "BCE",
+      name: "BCE Inc.",
+      shares: 25,
+      purchasePrice: 54.20,
+      currentPrice: 42.85,
+      change: -20.94,
+      changeAmount: -11.35,
+      data: Array.from({ length: 30 }, (_, i) => ({
+        day: i + 1,
+        price: 54.20 - Math.cos(i * 0.4) * 8 - (i * 0.25) // Significant decline
       }))
     }
   ];
 
-  // Calculate portfolio data
+  // Calculate cumulative portfolio value over time
   const portfolioData = useMemo(() => {
     return Array.from({ length: 30 }, (_, i) => {
       const dayData = {
@@ -60,6 +72,7 @@ const Investments = () => {
         total: 0
       };
       
+      // Calculate cumulative value for this day
       stockInvestments.forEach(stock => {
         dayData.total += stock.data[i].price * stock.shares;
       });
@@ -82,11 +95,12 @@ const Investments = () => {
   const totalChange = ((totalPortfolioValue - initialPortfolioValue) / initialPortfolioValue) * 100;
 
   useEffect(() => {
-    const getAiSuggestion = async () => {
+    // Trigger AI analysis when page loads
+    const analyzeStocks = async () => {
       try {
         const { data, error } = await supabase.functions.invoke('analyze-finances', {
           body: { 
-            type: 'investment_suggestion',
+            type: 'stocks',
             stocks: stockInvestments.map(stock => ({
               symbol: stock.symbol,
               currentPrice: stock.currentPrice,
@@ -97,48 +111,25 @@ const Investments = () => {
         });
 
         if (error) throw error;
-        if (data?.suggestions) {
-          setAiSuggestion(data.suggestions);
-        }
       } catch (error) {
-        console.error('Error getting AI suggestions:', error);
-        toast({
-          title: "Error",
-          description: "Failed to get AI suggestions",
-          variant: "destructive",
-        });
+        console.error('Error analyzing stocks:', error);
       }
     };
 
-    getAiSuggestion();
-  }, [toast]);
+    analyzeStocks();
+  }, []);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
       <h1 className="text-3xl font-bold mb-8">Investment Portfolio</h1>
       
-      {/* AI Investment Advisor */}
-      {aiSuggestion && (
-        <Card className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-full bg-blue-100">
-                <Brain className="w-6 h-6 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-2">AI Investment Insights</h3>
-                <p className="text-gray-700 whitespace-pre-line">{aiSuggestion}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <InvestmentAdvisor stocks={stockInvestments} />
       
       {/* Portfolio Overview Card */}
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="w-6 h-6" />
+            <LineChart className="w-6 h-6" />
             Portfolio Overview
           </CardTitle>
         </CardHeader>
@@ -183,21 +174,19 @@ const Investments = () => {
 
       {/* Individual Stocks */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <LineChart className="w-6 h-6" />
-            Individual Stocks
-          </CardTitle>
+        <CardHeader className="flex flex-row items-center space-x-4">
+          <LineChart className="w-8 h-8 text-primary" />
+          <CardTitle>Individual Stocks</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
             {stockInvestments.map((stock, index) => (
-              <Card key={index} className="p-4 hover:shadow-lg transition-all duration-300">
+              <Card key={index} className="p-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
                   <div>
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                        {stock.symbol}
+                        {stock.symbol.slice(0, 2)}
                       </div>
                       <div>
                         <h3 className="font-semibold">{stock.symbol}</h3>
@@ -233,7 +222,7 @@ const Investments = () => {
                         <ArrowDown className="w-4 h-4 text-red-500" />
                       )}
                       <span className={stock.change >= 0 ? "text-green-500" : "text-red-500"}>
-                        ${Math.abs(stock.changeAmount).toFixed(2)} ({Math.abs(stock.change).toFixed(2)}%)
+                        {stock.changeAmount} ({stock.change.toFixed(2)}%)
                       </span>
                     </div>
                   </div>
