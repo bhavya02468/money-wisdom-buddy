@@ -44,32 +44,40 @@ serve(async (req) => {
       const income = incomeResponse.data || [];
       const goals = goalsResponse.data || [];
 
-      const totalExpenses = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
-      const totalIncome = income.reduce((sum, inc) => sum + Number(inc.amount), 0);
-      const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
+      // Calculate subscription expenses
+      const subscriptionExpenses = expenses.filter(exp => 
+        exp.description.toLowerCase().includes('subscription') || 
+        exp.description.toLowerCase().includes('monthly') ||
+        exp.is_recurring
+      );
+
+      const totalSubscriptions = subscriptionExpenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
       
+      // Group expenses by category for analysis
       const expensesByCategory = expenses.reduce((acc, exp) => {
         acc[exp.category] = (acc[exp.category] || 0) + Number(exp.amount);
         return acc;
       }, {} as Record<string, number>);
 
-      const recurringExpenses = expenses.filter(exp => exp.is_recurring);
-      const totalRecurring = recurringExpenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
-
       const analysisPrompt = `
-        As a financial advisor, analyze this data and provide 3 specific suggestions (max 80 words total):
-        Monthly Income: $${totalIncome}
-        Monthly Expenses: $${totalExpenses}
-        Savings Rate: ${savingsRate.toFixed(1)}%
-        Recurring Expenses: $${totalRecurring}
-        Expense Categories: ${JSON.stringify(expensesByCategory)}
-        Financial Goals: ${goals.map(g => `${g.name}: $${g.target_amount}`).join(', ')}
-
+        As a financial advisor, analyze this data and provide 3 specific suggestions for reducing expenses (max 80 words total).
         Focus on:
-        1. Savings opportunities
-        2. Budget optimization
-        3. Goal achievement
+        1. Monthly Subscriptions (Total: $${totalSubscriptions})
+        2. Expense Categories: ${JSON.stringify(expensesByCategory)}
+        3. Recurring Expenses: ${JSON.stringify(subscriptionExpenses.map(e => ({ name: e.description, amount: e.amount })))}
+
+        Consider:
+        - Popular subscription alternatives or bundles
+        - Categories with highest spending
+        - Specific opportunities for cost reduction
+        
+        Format response as:
+        1. [First suggestion about subscriptions]
+        2. [Second suggestion about high-spend categories]
+        3. [Third suggestion about general savings]
       `;
+
+      console.log('Sending analysis prompt to OpenAI:', analysisPrompt);
 
       const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -82,7 +90,7 @@ serve(async (req) => {
           messages: [
             {
               role: 'system',
-              content: 'You are a helpful financial advisor. Provide specific, actionable advice based on real financial data. Keep responses under 80 words and avoid using markdown symbols.'
+              content: 'You are a helpful financial advisor. Provide specific, actionable advice for reducing expenses. Focus on subscription optimization and practical money-saving tips. Keep responses under 80 words and use a clear numbered list format.'
             },
             {
               role: 'user',
@@ -127,7 +135,7 @@ serve(async (req) => {
       JSON.stringify({ error: error.message }),
       { 
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
   }
