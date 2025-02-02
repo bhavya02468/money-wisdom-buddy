@@ -5,26 +5,43 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useExpenses } from "@/hooks/useExpenses";
-import { useMonthlyIncome } from "@/hooks/useIncome";
+import { useIncome } from "@/hooks/useIncome";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
-const AddInvestment = () => {
+const InvestmentRecommender = () => {
   const { toast } = useToast();
   const { data: expenses } = useExpenses();
-  const { data: income } = useMonthlyIncome();
+  const { monthlyData: incomeData } = useIncome();
   const [loading, setLoading] = useState(false);
   const [investmentType, setInvestmentType] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
   const [recommendation, setRecommendation] = useState<string>("");
 
   // Calculate total balance (income - expenses)
-  const totalIncome = income?.monthlyData?.reduce((sum, item) => sum + item.amount, 0) || 0;
+  const totalIncome = incomeData?.reduce((sum, item) => sum + item.amount, 0) || 0;
   const totalExpenses = expenses?.reduce((sum, item) => sum + item.amount, 0) || 0;
   const totalBalance = totalIncome - totalExpenses;
-  const suggestedAmount = totalBalance / 2;
+  const suggestedAmount = Math.max(0, totalBalance / 2);
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Only allow positive numbers
+    if (Number(value) >= 0) {
+      setAmount(value);
+    }
+  };
 
   const getInvestmentAdvice = async () => {
+    if (Number(amount) <= 0) {
+      toast({
+        title: "Invalid Amount",
+        description: "Please enter a positive investment amount",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -71,7 +88,7 @@ const AddInvestment = () => {
     <div className="container mx-auto px-4 py-8">
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
-          <CardTitle>Add Investment</CardTitle>
+          <CardTitle>Investment Recommender</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
@@ -104,15 +121,17 @@ const AddInvestment = () => {
               <label className="text-sm font-medium">Investment Amount ($)</label>
               <Input
                 type="number"
+                min="0"
+                step="0.01"
                 placeholder="Enter amount"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={handleAmountChange}
               />
             </div>
 
             <Button
               onClick={getInvestmentAdvice}
-              disabled={!investmentType || !amount || loading}
+              disabled={!investmentType || !amount || loading || Number(amount) <= 0}
               className="w-full"
             >
               {loading ? (
@@ -140,4 +159,4 @@ const AddInvestment = () => {
   );
 };
 
-export default AddInvestment;
+export default InvestmentRecommender;
