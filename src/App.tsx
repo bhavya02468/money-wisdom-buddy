@@ -1,29 +1,160 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Dashboard from "@/pages/Dashboard";
-import Investments from "@/pages/Investments";
-import AddInvestment from "@/pages/AddInvestment";
-import { ToastProvider } from "@/hooks/use-toast";
-import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import Index from "./pages/Index";
+import Auth from "./pages/Auth";
+import Chat from "./pages/Chat";
+import Dashboard from "./pages/Dashboard";
+import AddExpense from "./pages/AddExpense";
+import AddIncome from "./pages/AddIncome";
+import Investments from "./pages/Investments";
+import NotFound from "./pages/NotFound";
+import Layout from "./components/Layout";
+import DashboardLayout from "./components/DashboardLayout";
+import FinancialGoals from "./pages/FinancialGoals";
 
-function App() {
-  return (
-    <Router>
-      <ToastProvider>
+const queryClient = new QueryClient();
+
+const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
+  const [session, setSession] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  return session ? (
+    <DashboardLayout>{children}</DashboardLayout>
+  ) : (
+    <Navigate to="/auth" />
+  );
+};
+
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+  const [session, setSession] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  return !session ? (
+    <Layout>{children}</Layout>
+  ) : (
+    <Navigate to="/dashboard" />
+  );
+};
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/investments" element={<Investments />} />
           <Route
-            path="/add-investment"
+            path="/"
             element={
-              <DashboardLayout>
-                <AddInvestment />
-              </DashboardLayout>
+              <PublicRoute>
+                <Index />
+              </PublicRoute>
             }
           />
+          <Route
+            path="/auth"
+            element={
+              <PublicRoute>
+                <Auth />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/chat"
+            element={
+              <PrivateRoute>
+                <Chat />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/add-expense"
+            element={
+              <PrivateRoute>
+                <AddExpense />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/add-income"
+            element={
+              <PrivateRoute>
+                <AddIncome />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/investments"
+            element={
+              <PrivateRoute>
+                <Investments />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/financial-goals"
+            element={
+              <PrivateRoute>
+                <FinancialGoals />
+              </PrivateRoute>
+            }
+          />
+          <Route path="*" element={<NotFound />} />
         </Routes>
-      </ToastProvider>
-    </Router>
-  );
-}
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;
