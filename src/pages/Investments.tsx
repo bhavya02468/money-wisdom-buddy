@@ -42,6 +42,45 @@ const Investments = () => {
         day: i + 1,
         price: 47.7 + Math.sin(i * 0.3) * 0.2
       }))
+    },
+    {
+      symbol: "TD",
+      name: "Toronto-Dominion Bank",
+      shares: 15,
+      purchasePrice: 82.50,
+      currentPrice: 80.25,
+      change: -2.73,
+      changeAmount: -2.25,
+      data: Array.from({ length: 30 }, (_, i) => ({
+        day: i + 1,
+        price: 82.5 - Math.sin(i * 0.3) * 2.5
+      }))
+    },
+    {
+      symbol: "CNR",
+      name: "Canadian National Railway",
+      shares: 8,
+      purchasePrice: 156.75,
+      currentPrice: 159.30,
+      change: 1.63,
+      changeAmount: 2.55,
+      data: Array.from({ length: 30 }, (_, i) => ({
+        day: i + 1,
+        price: 156.75 + Math.sin(i * 0.3) * 3
+      }))
+    },
+    {
+      symbol: "BCE",
+      name: "BCE Inc.",
+      shares: 25,
+      purchasePrice: 54.20,
+      currentPrice: 52.85,
+      change: -2.49,
+      changeAmount: -1.35,
+      data: Array.from({ length: 30 }, (_, i) => ({
+        day: i + 1,
+        price: 54.20 - Math.cos(i * 0.3) * 1.5
+      }))
     }
   ];
 
@@ -77,7 +116,7 @@ const Investments = () => {
                         <Line 
                           type="monotone" 
                           dataKey="price" 
-                          stroke="#22c55e" 
+                          stroke={stock.change >= 0 ? "#22c55e" : "#ef4444"} 
                           dot={false}
                         />
                         <XAxis dataKey="day" hide />
