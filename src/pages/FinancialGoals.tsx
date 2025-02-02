@@ -114,105 +114,129 @@ const FinancialGoals = () => {
         <h1 className="text-3xl font-bold">Financial Goals</h1>
       </div>
 
-      <div className="grid gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Plus className="w-5 h-5" />
-              Add New Goal
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleAddGoal} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Goal Name</label>
-                <Input
-                  required
-                  value={newGoal.name}
-                  onChange={(e) => setNewGoal({ ...newGoal, name: e.target.value })}
-                  placeholder="e.g., Emergency Fund"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Target Amount ($)</label>
-                <Input
-                  required
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={newGoal.target_amount}
-                  onChange={(e) => setNewGoal({ ...newGoal, target_amount: e.target.value })}
-                  placeholder="10000"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Target Date</label>
-                <Input
-                  required
-                  type="date"
-                  value={newGoal.target_date}
-                  onChange={(e) => setNewGoal({ ...newGoal, target_date: e.target.value })}
-                />
-              </div>
-              <Button type="submit" disabled={loading}>
-                {loading ? "Adding..." : "Add Goal"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        {goals?.map((goal) => (
-          <Card key={goal.id}>
+      {/* Flex container: stacks on small screens; two columns on large screens */}
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Left Column: Add New Goal */}
+        <div className="lg:w-1/2">
+          <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Target className="w-5 h-5" />
-                  {goal.name}
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleDeleteGoal(goal.id)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+              <CardTitle className="flex items-center gap-2">
+                <Plus className="w-5 h-5" />
+                Add New Goal
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between text-sm">
-                  <span>Progress: ${goal.current_amount} of ${goal.target_amount}</span>
-                  <span>Target Date: {new Date(goal.target_date).toLocaleDateString()}</span>
-                </div>
-                <Progress
-                  value={(goal.current_amount / goal.target_amount) * 100}
-                  className="h-2"
-                />
-                <div className="flex gap-4 items-center">
+              <form onSubmit={handleAddGoal} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Goal Name</label>
                   <Input
+                    required
+                    value={newGoal.name}
+                    onChange={(e) =>
+                      setNewGoal({ ...newGoal, name: e.target.value })
+                    }
+                    placeholder="e.g., Emergency Fund"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Target Amount ($)
+                  </label>
+                  <Input
+                    required
                     type="number"
                     min="0"
                     step="0.01"
-                    placeholder="Update progress"
-                    onChange={(e) => handleUpdateProgress(goal.id, e.target.value)}
+                    value={newGoal.target_amount}
+                    onChange={(e) =>
+                      setNewGoal({ ...newGoal, target_amount: e.target.value })
+                    }
+                    placeholder="10000"
                   />
                 </div>
-              </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Target Date
+                  </label>
+                  <Input
+                    required
+                    type="date"
+                    value={newGoal.target_date}
+                    onChange={(e) =>
+                      setNewGoal({ ...newGoal, target_date: e.target.value })
+                    }
+                  />
+                </div>
+                <Button type="submit" disabled={loading}>
+                  {loading ? "Adding..." : "Add Goal"}
+                </Button>
+              </form>
             </CardContent>
           </Card>
-        ))}
+        </div>
 
-        {(!goals || goals.length === 0) && (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <Target className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-              <p className="text-lg font-medium mb-2">No Financial Goals Yet</p>
-              <p className="text-sm text-gray-500">
-                Start by adding your first financial goal above.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+        {/* Right Column: List of Goals */}
+        <div className="lg:w-1/2 grid gap-6">
+          {goals && goals.length > 0 ? (
+            goals.map((goal) => (
+              <Card key={goal.id}>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Target className="w-5 h-5" />
+                      {goal.name}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteGoal(goal.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex justify-between text-sm">
+                      <span>
+                        Progress: ${goal.current_amount} of ${goal.target_amount}
+                      </span>
+                      <span>
+                        Target Date:{" "}
+                        {new Date(goal.target_date).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <Progress
+                      value={(goal.current_amount / goal.target_amount) * 100}
+                      className="h-2"
+                    />
+                    <div className="flex gap-4 items-center">
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="Update progress"
+                        onChange={(e) =>
+                          handleUpdateProgress(goal.id, e.target.value)
+                        }
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Target className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                <p className="text-lg font-medium mb-2">No Financial Goals Yet</p>
+                <p className="text-sm text-gray-500">
+                  Start by adding your first financial goal on the left.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </div>
   );
