@@ -34,7 +34,7 @@ interface Goal {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
@@ -67,15 +67,15 @@ serve(async (req) => {
 
       Keep the response concise and practical, with a focus on Montreal-specific advice where relevant.`
 
-      response = await openai.createChatCompletion({
-        model: 'gpt-4o-mini',
+      const completion = await openai.createChatCompletion({
+        model: 'gpt-4',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.7,
         max_tokens: 500,
       })
 
       return new Response(
-        JSON.stringify({ response: response.data.choices[0]?.message?.content }),
+        JSON.stringify({ response: completion.data.choices[0]?.message?.content }),
         { 
           headers: { 
             ...corsHeaders,
@@ -137,7 +137,7 @@ serve(async (req) => {
 
     // Get suggestions from OpenAI
     const completion = await openai.createChatCompletion({
-      model: 'gpt-4o-mini',
+      model: 'gpt-4',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.7,
       max_tokens: 500,
