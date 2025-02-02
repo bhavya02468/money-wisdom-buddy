@@ -50,6 +50,7 @@ const Dashboard = () => {
   const { monthlyData: expenseData, spendingByCategory } = useMonthlyExpenses();
   const { monthlyData: incomeData } = useMonthlyIncome();
   const { data: goals } = useFinancialGoals();
+  const [aiInsights, setAiInsights] = useState<string>("");
 
   // Calculate current month totals
   const currentMonthExpense = expenseData[0]?.amount || 0;
@@ -121,16 +122,21 @@ const Dashboard = () => {
   const creditScoreColor = getCreditScoreColor(creditScore);
   const creditScoreText = getCreditScoreText(creditScore);
 
-  // Add new state for AI insights
-  const [aiInsights, setAiInsights] = useState<string>("");
-
-  // Add effect to fetch AI insights
+  // Add effect to fetch AI insights with user ID
   useEffect(() => {
     const getAiInsights = async () => {
       try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          console.error('No authenticated user found');
+          return;
+        }
+
         const { data, error } = await supabase.functions.invoke('analyze-finances', {
           body: { 
             type: 'insights',
+            userId: user.id,
             expenses: expenses || [],
             income: incomeData || [],
             goals: goals || []

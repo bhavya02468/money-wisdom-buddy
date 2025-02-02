@@ -13,7 +13,18 @@ serve(async (req) => {
   }
 
   try {
-    const { type, stocks, userId } = await req.json();
+    const { type, stocks, userId, expenses, income, goals } = await req.json();
+
+    // Validate userId is present
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: 'User ID is required' }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
 
     if (type === 'stocks') {
       let suggestions = "Based on your portfolio analysis:\n\n";
@@ -36,10 +47,7 @@ serve(async (req) => {
       );
     }
 
-    if (!userId) {
-      throw new Error('User ID is required');
-    }
-
+    console.log('Initializing Supabase client...');
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
@@ -48,41 +56,12 @@ serve(async (req) => {
       throw new Error('Missing required environment variables');
     }
 
-    console.log('Initializing Supabase client...');
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    console.log('Fetching user financial data...');
-    const [expensesResponse, incomeResponse, goalsResponse] = await Promise.all([
-      supabase.from('expenses').select('*').eq('user_id', userId),
-      supabase.from('income').select('*').eq('user_id', userId),
-      supabase.from('financial_goals').select('*').eq('user_id', userId)
-    ]);
-
-    if (expensesResponse.error) throw expensesResponse.error;
-    if (incomeResponse.error) throw incomeResponse.error;
-    if (goalsResponse.error) throw goalsResponse.error;
-
-    const expenses = expensesResponse.data || [];
-    const income = incomeResponse.data || [];
-    const goals = goalsResponse.data || [];
-
-    const totalExpenses = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
-    const totalIncome = income.reduce((sum, inc) => sum + Number(inc.amount), 0);
-    const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
-    
-    const expensesByCategory = expenses.reduce((acc, exp) => {
-      acc[exp.category] = (acc[exp.category] || 0) + Number(exp.amount);
-      return acc;
-    }, {} as Record<string, number>);
-
     console.log('Preparing Montreal-specific analysis prompt...');
     const analysisPrompt = `
       As a financial advisor familiar with Montreal downtown, analyze this data:
-      - Monthly Income: $${totalIncome}
-      - Monthly Expenses: $${totalExpenses}
-      - Savings Rate: ${savingsRate.toFixed(1)}%
-      - Expense Categories: ${JSON.stringify(expensesByCategory)}
-      - Financial Goals: ${goals.map(g => `${g.name}: $${g.target_amount}`).join(', ')}
+      - Monthly Income: $${income.reduce((sum: number, inc: any) => sum + Number(inc.amount), 0)}
+      - Monthly Expenses: $${expenses.reduce((sum: number, exp: any) => sum + Number(exp.amount), 0)}
+      - Financial Goals: ${goals.map((g: any) => `${g.name}: $${g.target_amount}`).join(', ')}
 
       Provide ONE specific, actionable suggestion (max 80 words) focusing on:
       1. Montreal-specific savings opportunities (e.g., STM OPUS card deals, student discounts)
@@ -101,7 +80,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4',
         messages: [
           {
             role: 'system',
