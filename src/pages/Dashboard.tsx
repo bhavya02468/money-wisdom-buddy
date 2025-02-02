@@ -28,8 +28,6 @@ import { useFinancialGoals } from "@/hooks/useFinancialGoals";
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { RecurringExpenses } from "@/components/RecurringExpenses";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
@@ -55,8 +53,6 @@ const Dashboard = () => {
   const { data: goals } = useFinancialGoals();
   const [aiInsights, setAiInsights] = useState<string>("");
   const insightsGeneratedRef = useRef(false);
-  const navigate = useNavigate();
-  const { toast } = useToast();
 
   // Calculate current month totals
   const currentMonthExpense = expenseData[0]?.amount || 0;
@@ -72,14 +68,43 @@ const Dashboard = () => {
   const primaryGoal = goals?.[0];
   const goalProgress = primaryGoal ? (primaryGoal.current_amount / primaryGoal.target_amount) * 100 : 0;
 
-  const EmptyState = () => (
-    <div className="flex flex-col items-center justify-center p-8 text-center">
-      <p className="text-lg text-gray-500 mb-4">No data available</p>
-      <p className="text-sm text-gray-400">Start by adding some income or expenses</p>
-    </div>
-  );
+  // Calculate balance change percentage
+  const previousBalance = (incomeData[1]?.amount || 0) - (expenseData[1]?.amount || 0);
+  const balanceChange = previousBalance !== 0 
+    ? ((totalBalance - previousBalance) / previousBalance) * 100 
+    : 0;
 
-  // Updated effect to handle authentication and data fetching
+  // Hardcoded credit score for demo
+  const creditScore = 750;
+  const creditScoreColor = getCreditScoreColor(creditScore);
+  const creditScoreText = getCreditScoreText(creditScore);
+
+  // Prepare data for line chart (last 6 months)
+  const lineChartData = expenseData.slice(0, 6).map((expense, index) => {
+    const income = incomeData[index] || { amount: 0 };
+    const balance = income.amount - expense.amount;
+    return {
+      month: expense.month,
+      expense: expense.amount,
+      balance: balance
+    };
+  });
+
+  const getChangeIndicator = (change: number) => {
+    if (change === 0) return null;
+    return change > 0 ? (
+      <span className="flex items-center text-green-500 text-sm ml-2">
+        <ArrowUp className="w-4 h-4 mr-1" />
+        {change.toFixed(1)}%
+      </span>
+    ) : (
+      <span className="flex items-center text-red-500 text-sm ml-2">
+        <ArrowDown className="w-4 h-4 mr-1" />
+        {Math.abs(change).toFixed(1)}%
+      </span>
+    );
+  };
+
   useEffect(() => {
     const getAiInsights = async () => {
       if (insightsGeneratedRef.current) return;
@@ -140,7 +165,7 @@ const Dashboard = () => {
     if (expenseData || incomeData || goals) {
       getAiInsights();
     }
-  }, [expenseData, incomeData, goals, navigate, toast]);
+  }, [expenseData, incomeData, goals]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -234,7 +259,10 @@ const Dashboard = () => {
                 </ChartContainer>
               </div>
             ) : (
-              <EmptyState />
+              <div className="flex flex-col items-center justify-center p-8 text-center">
+                <p className="text-lg text-gray-500 mb-4">No data available</p>
+                <p className="text-sm text-gray-400">Start by adding some income or expenses</p>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -284,29 +312,7 @@ const Dashboard = () => {
 
       {/* Bottom cards: Financial Goal Progress, Financial Health Score, Recurring Expenses, and AI Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Recurring Expenses</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recurringExpenses.map((expense) => (
-                <div
-                  key={expense.id}
-                  className="flex items-center justify-between p-2 rounded-lg bg-secondary/10"
-                >
-                  <div>
-                    <p className="font-medium">{expense.description}</p>
-                    <p className="text-sm text-muted-foreground">{expense.category}</p>
-                  </div>
-                  <p className="font-medium text-red-500">
-                    -${expense.amount.toFixed(2)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <RecurringExpenses />
 
         <Card>
           <CardHeader>
@@ -316,12 +322,26 @@ const Dashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p>Based on your spending patterns, here are some suggestions for improving your financial well-being:</p>
-            <ul className="list-disc pl-5 mt-2">
-              <li>Review your recurring expenses for potential savings opportunities.</li>
-              <li>Consider automating your savings to better achieve your financial goals.</li>
-              <li>Maintain your good credit score by making timely payments.</li>
-            </ul>
+            {aiInsights ? (
+              <div className="space-y-4">
+                <div className="flex items-start gap-4">
+                  <img
+                    src="/lovable-uploads/2cc60c20-704c-4e74-8ef7-0baba9ed0820.png"
+                    alt="AI Advisor"
+                    className="w-12 h-12 rounded-full"
+                  />
+                  <div className="flex-1">
+                    <div className="text-gray-700 space-y-2 whitespace-pre-line">
+                      {aiInsights}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-muted-foreground">
+                Analyzing your financial data to provide personalized insights...
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -346,7 +366,10 @@ const Dashboard = () => {
                 </p>
               </div>
             ) : (
-              <EmptyState />
+              <div className="flex flex-col items-center justify-center p-8 text-center">
+                <p className="text-lg text-gray-500 mb-4">No data available</p>
+                <p className="text-sm text-gray-400">Start by adding some financial goals</p>
+              </div>
             )}
           </CardContent>
         </Card>
