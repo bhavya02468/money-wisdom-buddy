@@ -119,8 +119,9 @@ const Dashboard = () => {
         100
       : 0;
 
-    const saving = (lineChartData[lineChartData.length - 1].balance -
-      lineChartData[lineChartData.length - 2].balance);
+    const saving = lineChartData.length > 1
+    ? (lineChartData[lineChartData.length - 1].balance -
+      lineChartData[lineChartData.length - 2].balance) : 0;
 
   // Calculate a balance change indicator based on current month’s balance vs. total.
   const balanceChange =
